@@ -1,0 +1,8 @@
+torch>=1.12.0
+torchvision>=0.13.0
+tensorly>=0.8.0
+tltorch>=0.1.7
+numpy>=1.21.0
+matplotlib>=3.5.0
+h5py>=3.6.0
+scipy>=1.8.0
