@@ -725,16 +725,19 @@ class QTTWeight(nn.Module):
                 y = self._matmul_einsum_in_bits_out(
                     x_rows, core_in, bit_cores[:total_bits], core_out, bits_all, timing_on=timing_on
                 )
+                # Mark that the einsum fast-path was used. Always set this flag so
+                # callers can detect which path was executed regardless of whether
+                # detailed timing was requested.
+                self._last_op_timing.setdefault("einsum_used", True)
                 if timing_on:
                     _sync(); self._last_op_timing["op_total_ms"] = (time.perf_counter() - t_all0) * 1e3
-                    self._last_op_timing["einsum_used"] = True
                 return y
             except Exception as e:
                 # Optionally require einsum fast-path (for debugging/timing focus)
                 require = str(os.getenv("STFNO_QTT_REQUIRE_EINSUM", "0")).strip().lower() not in ("0", "false", "no", "off", "")
-                if timing_on:
-                    self._last_op_timing["einsum_used"] = False
-                    self._last_op_timing["einsum_error"] = f"{e.__class__.__name__}: {e}"
+                # Record that einsum was attempted but failed
+                self._last_op_timing.setdefault("einsum_used", False)
+                self._last_op_timing.setdefault("einsum_error", f"{e.__class__.__name__}: {e}")
                 if require:
                     raise
                 # else fall through to incremental path
@@ -751,6 +754,8 @@ class QTTWeight(nn.Module):
                     if self._tt_order != 'in-bits-out':
                         reason.append(f"order={self._tt_order}")
                     self._last_op_timing["einsum_error"] = ";".join(reason) if reason else "condition_not_met"
+            # Also mark that the einsum fast-path was not used
+            self._last_op_timing.setdefault("einsum_used", False)
             if require:
                 raise RuntimeError("Einsum fast path required but not used due to configuration/order")
 
