@@ -1,3 +1,76 @@
+# Python virtual environments
 /.venv
+venv/
+env/
+
+# Project backups and data logs
 /Data_Logs_Tests
 /STFNO_QTT_backup
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Distribution / build
+build/
+dist/
+*.egg-info/
+
+# PyTorch / model artifacts
+*.pt
+*.pth
+*.ckpt
+*.t7
+
+# NumPy binaries
+*.npy
+*.npz
+
+# Experiment outputs, results and debug folders
+results/
+results*/
+debug_*/
+debug*/
+postprocess_*/
+postprocess*/
+plots*/
+plots_*/
+
+# Run logs / generated run files
+run_output.txt
+run_gpu_output.txt
+run_gpu_5ep.txt
+run_compare_submit.txt
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Test / coverage
+.pytest_cache/
+htmlcov/
+
+# Ignore large media files by default (uncomment if you keep media elsewhere)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mov
+
+# Optional: track LFS via .gitattributes if you decide to keep model files
+# .gitattributes
+# *.pt filter=lfs diff=lfs merge=lfs -text
+
+# Local env files
+.env
+.envrc
+
+# Misc
+local_settings.py
