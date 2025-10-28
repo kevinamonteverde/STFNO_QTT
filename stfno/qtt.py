@@ -138,8 +138,8 @@ class QTTWeight(nn.Module):
     def __init__(
         self,
         weight_shape: Tuple[int, ...],
-        quantize_last_ndims: int = 3,
-    rank = 0.5,
+        quantize_last_ndims: int = 0,
+    rank = 4,
         init_std: float = 1.0,
         base: int = 2,
         dtype = torch.cfloat,
@@ -226,9 +226,17 @@ class QTTWeight(nn.Module):
                 self._tt_order = 'in-out-bits'
             else:
                 total_bits = sum(int(m) for m in (self._meta.ms or []))
-                Cin = int(self.weight_shape[0])
-                Cout = int(self.weight_shape[1]) if len(self.weight_shape) > 1 else 1
-                tt_dims = (Cin, *([self.base] * total_bits), Cout)
+                # If there are no quantized bits, treat this as a plain TT over the
+                # folded_shape (which equals the original shape when no axes were
+                # quantized). The in-bits-out ordering only makes sense when bits
+                # are present; fall back to in-out-bits for the zero-bit case.
+                if total_bits == 0:
+                    tt_dims = tuple(folded_shape)
+                    self._tt_order = 'in-out-bits'
+                else:
+                    Cin = int(self.weight_shape[0])
+                    Cout = int(self.weight_shape[1]) if len(self.weight_shape) > 1 else 1
+                    tt_dims = (Cin, *([self.base] * total_bits), Cout)
         else:
             tt_dims = tuple(folded_shape)
 
