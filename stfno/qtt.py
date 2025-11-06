@@ -762,7 +762,13 @@ class QTTWeight(nn.Module):
         # Incremental contraction paths
         # 1) Contract input core: (N, Cin) x (Cin, r1) -> (N, r1)
         Gin = core_in.squeeze(0) if core_in.dim() == 3 and core_in.shape[0] == 1 else core_in
+        # Measure contraction-only time for incremental path
+        contract_ms_total = 0.0
+        if timing_on:
+            _sync(); _t0c = time.perf_counter()
         left_rank = x_rows @ Gin
+        if timing_on:
+            _sync(); contract_ms_total += (time.perf_counter() - _t0c) * 1e3
 
         if self._tt_order == 'in-bits-out':
             # Walk bits then apply output core
@@ -772,38 +778,68 @@ class QTTWeight(nn.Module):
                 r_next = core_j.shape[-1]
                 bj = bits_all[:, j].to(x_rows.device)
                 core_perm = core_j.permute(1, 0, 2).contiguous()  # (base, r_cur, r_next)
+                if timing_on:
+                    _sync(); _t0c = time.perf_counter()
                 M = core_perm.index_select(0, bj).permute(1, 0, 2)
                 M = M.permute(1, 0, 2).contiguous()                # (N, r_cur, r_next)
                 left_rank = torch.einsum('nr,nrs->ns', left_rank, M)
+                if timing_on:
+                    _sync(); contract_ms_total += (time.perf_counter() - _t0c) * 1e3
                 r_cur = r_next
             if core_out.shape[-1] != 1:
                 W = core_out.sum(dim=-1)   # (r_last, Cout)
             else:
                 W = core_out[..., 0]       # (r_last, Cout)
+            if timing_on:
+                _sync(); _t0c = time.perf_counter()
             y_rows = left_rank @ W
+            if timing_on:
+                _sync(); contract_ms_total += (time.perf_counter() - _t0c) * 1e3
             if timing_on:
                 _sync(); self._last_op_timing["op_total_ms"] = (time.perf_counter() - t_all0) * 1e3
                 # Mark that incremental path was used if not already marked above
                 self._last_op_timing.setdefault("einsum_used", False)
+                # Record contraction-only time for incremental path
+                try:
+                    self._last_op_timing["contract_ms"] = float(contract_ms_total)
+                except Exception:
+                    pass
             return y_rows
 
         # Default path: combine Cout early and walk bits while carrying Cout
+        if timing_on:
+            _sync(); _t0c = time.perf_counter()
         T = torch.tensordot(left_rank, core_out, dims=([1], [0]))  # (N, Cout, r2)
+        if timing_on:
+            _sync(); contract_ms_total += (time.perf_counter() - _t0c) * 1e3
         r_cur = T.shape[-1]
         for j in range(total_bits):
             core_j = bit_cores[j]
             r_next = core_j.shape[-1]
             bj = bits_all[:, j].to(x_rows.device)
             core_perm = core_j.permute(1, 0, 2).contiguous()
+            if timing_on:
+                _sync(); _t0c = time.perf_counter()
             M = core_perm.index_select(0, bj).permute(1, 0, 2)
             M = M.permute(1, 0, 2).contiguous()
             T = torch.einsum('ncr,nrs->ncs', T, M)
+            if timing_on:
+                _sync(); contract_ms_total += (time.perf_counter() - _t0c) * 1e3
             r_cur = r_next
+        if timing_on:
+            _sync(); _t0c = time.perf_counter()
         y_rows = T.sum(dim=-1) if r_cur != 1 else T.squeeze(-1)
+        if timing_on:
+            _sync(); contract_ms_total += (time.perf_counter() - _t0c) * 1e3
         if timing_on:
             _sync(); self._last_op_timing["op_total_ms"] = (time.perf_counter() - t_all0) * 1e3
             # Mark that incremental path was used if not already marked above
             self._last_op_timing.setdefault("einsum_used", False)
+            # Record contraction-only time for incremental path
+            try:
+                self._last_op_timing["contract_ms"] = float(contract_ms_total)
+            except Exception:
+                pass
         return y_rows
 
 def get_global_cache_info() -> dict:

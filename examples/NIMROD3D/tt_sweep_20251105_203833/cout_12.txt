@@ -1,0 +1,30 @@
+--- Running TT for COUT=12 ---
+Device: cuda, batch=1, cin=16, cout=12, grid=(32, 32, 32), modes=(16, 16, 16), rank=16
+Times - FFT: 35.05ms, Contractions: 43.53ms, IFFT: 20.79ms | Path: dense
+Times - FFT: 0.13ms, Contractions: 1.91ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.76ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.75ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.71ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.73ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.71ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.70ms, IFFT: 0.08ms | Path: dense
+tt_reconstructed: avg Contractions over 8 iters = 1.721 ms | Path=dense
+Times - FFT: 0.08ms, Contractions: 1.80ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.73ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.73ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.70ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.71ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.70ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.70ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+tt_factorized: avg Contractions over 8 iters = 1.712 ms | Path=dense
+
+Summary (ms):
+  TT reconstructed (dense): 1.721
+  TT factorized (fallback): 1.712
