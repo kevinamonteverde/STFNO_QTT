@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Benchmark contraction times for dense (uncompressed), QTT (reconstructed+dense),
+"""Benchmark contraction times for dense (uncompressed), QTT (reconstructed+dense),
 TT (reconstructed+dense), and QTT operator core-by-core in both TT orderings.
 
 Focus: measure the time of the actual contraction only.
@@ -12,14 +11,15 @@ Focus: measure the time of the actual contraction only.
 Outputs a CSV to Data_Logs_Tests with columns:
   cout, device, cin, modes, rank,
   dense_ms,
-  qtt_reconstruct_ms, qtt_dense_ms, qtt_core_in_bits_out_ms, qtt_core_in_out_bits_ms, qtt_einsum_ms,
-  tt_reconstruct_ms, tt_dense_ms
+  qtt_reconstruct_ms, qtt_dense_ms, qtt_total_ms, qtt_core_in_bits_out_ms, qtt_core_in_out_bits_ms, qtt_einsum_ms,
+  tt_reconstruct_ms, tt_dense_ms, tt_total_ms
 
 Notes (metadata) are printed before the CSV header for reproducibility.
 """
 import os
 import csv
 import time
+import argparse
 from typing import Tuple, List
 
 import torch
@@ -160,8 +160,8 @@ def run_bench(
         wcsv.writerow([
             'cout','device','cin','modes','rank',
             'dense_ms',
-            'qtt_reconstruct_ms','qtt_dense_ms','qtt_core_in_bits_out_ms','qtt_core_in_out_bits_ms','qtt_einsum_ms',
-            'tt_reconstruct_ms','tt_dense_ms'
+            'qtt_reconstruct_ms','qtt_dense_ms','qtt_total_ms','qtt_core_in_bits_out_ms','qtt_core_in_out_bits_ms','qtt_einsum_ms',
+            'tt_reconstruct_ms','tt_dense_ms','tt_total_ms'
         ])
 
         for cout in cout_values:
@@ -184,9 +184,10 @@ def run_bench(
             )
             T_qtt, qtt_recon_ms = reconstruct_dense_and_time_ms(w_qtt_in_bits_out)
             qtt_dense_ms = dense_bmm_contraction_ms(T_qtt.permute(1,0,2,3,4).contiguous(), x_rows, indices, repeats=repeats)
+            qtt_total_ms = qtt_recon_ms + qtt_dense_ms
             qtt_core_in_bits_out_ms = measure_qtt_operator_contract_ms(w_qtt_in_bits_out, x_rows, indices, use_einsum=False, repeats=repeats)
             qtt_einsum_ms = measure_qtt_operator_contract_ms(w_qtt_in_bits_out, x_rows, indices, use_einsum=True, repeats=repeats)
-            print(f"qtt_recon_ms={qtt_recon_ms:.3f} qtt_dense_ms={qtt_dense_ms:.3f} qtt_core_in_bits_out_ms={qtt_core_in_bits_out_ms:.3f} qtt_einsum_ms={qtt_einsum_ms:.3f}")
+            print(f"qtt_recon_ms={qtt_recon_ms:.3f} qtt_dense_ms={qtt_dense_ms:.3f} qtt_total_ms={qtt_total_ms:.3f} qtt_core_in_bits_out_ms={qtt_core_in_bits_out_ms:.3f} qtt_einsum_ms={qtt_einsum_ms:.3f}")
 
             w_qtt_in_out_bits = QTTWeight(
                 weight_shape=(cin, cout, sx, sy, sz),
@@ -209,19 +210,51 @@ def run_bench(
                 pass
             W_tt = TT.to_tensor()
             tt_dense_ms = dense_bmm_contraction_ms(W_tt, x_rows, indices, repeats=repeats)
-            print(f"tt_recon_ms={tt_recon_ms:.3f} tt_dense_ms={tt_dense_ms:.3f}")
+            tt_total_ms = tt_recon_ms + tt_dense_ms
+            print(f"tt_recon_ms={tt_recon_ms:.3f} tt_dense_ms={tt_dense_ms:.3f} tt_total_ms={tt_total_ms:.3f}")
 
             wcsv.writerow([
                 cout, str(device), cin, f"{sx}x{sy}x{sz}", rank,
                 f"{dense_ms:.3f}",
-                f"{qtt_recon_ms:.3f}", f"{qtt_dense_ms:.3f}", f"{qtt_core_in_bits_out_ms:.3f}", f"{qtt_core_in_out_bits_ms:.3f}", f"{qtt_einsum_ms:.3f}",
-                f"{tt_recon_ms:.3f}", f"{tt_dense_ms:.3f}",
+                f"{qtt_recon_ms:.3f}", f"{qtt_dense_ms:.3f}", f"{qtt_total_ms:.3f}", f"{qtt_core_in_bits_out_ms:.3f}", f"{qtt_core_in_out_bits_ms:.3f}", f"{qtt_einsum_ms:.3f}",
+                f"{tt_recon_ms:.3f}", f"{tt_dense_ms:.3f}", f"{tt_total_ms:.3f}",
             ])
 
     print('Done.')
 
 
 if __name__ == '__main__':
-    couts = [8, 12, 16, 20]
-    # couts += [64, 128, 256]
-    run_bench(couts)
+    p = argparse.ArgumentParser(description='Contraction benchmark sweep')
+    p.add_argument('--couts', type=str, default='8,12,16,20',
+                   help='Comma-separated list of cout values, e.g. "8,12,16,20"')
+    p.add_argument('--append-large', action='store_true',
+                   help='Append larger couts 64,128,256 to the list')
+    p.add_argument('--n-rows', type=int, default=2048, help='Number of random rows (N)')
+    p.add_argument('--repeats', type=int, default=5, help='Repeats per timing (averaged)')
+    p.add_argument('--cin', type=int, default=16, help='Input channels')
+    p.add_argument('--rank', type=int, default=16, help='TT/QTT rank')
+    p.add_argument('--modes', nargs=3, type=int, default=[16,16,16], help='Spatial modes Sx Sy Sz')
+    p.add_argument('--device', choices=['cpu','cuda','auto'], default='auto', help='Device to run on')
+    p.add_argument('--dtype', choices=['float32','float64'], default='float32')
+    p.add_argument('--out', type=str, default=None, help='Output CSV path (optional)')
+    args = p.parse_args()
+
+    couts = []
+    for tok in args.couts.replace(',', ' ').split():
+        try:
+            couts.append(int(tok))
+        except ValueError:
+            pass
+    if args.append_large:
+        couts += [64, 128, 256]
+
+    modes = tuple(int(x) for x in args.modes)
+    device = None
+    if args.device == 'cuda':
+        device = torch.device('cuda')
+    elif args.device == 'cpu':
+        device = torch.device('cpu')
+    # else leave device None to auto-select in run_bench
+    dtype = torch.float32 if args.dtype == 'float32' else torch.float64
+
+    run_bench(couts, cin=args.cin, modes=modes, rank=args.rank, N_rows=args.n_rows, repeats=args.repeats, device=device, dtype=dtype, out_csv=args.out)

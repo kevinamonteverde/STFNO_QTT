@@ -19,7 +19,7 @@ def main():
     # Small synthetic shape: (Cin, Cout, Nx, Ny, Nz)
     weight_shape = (4, 2, 8, 8, 8)
     quantize_last_ndims = 3
-
+t
     # Create a QTTWeight with in-bits-out ordering to enable einsum fast-path
     w = QTTWeight(
         weight_shape=weight_shape,
