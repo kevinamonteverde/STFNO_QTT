@@ -79,6 +79,8 @@ def parse_arguments():
                        help='Model width (default: 8)')
     parser.add_argument('--spatial_size', type=int, default=32,
                        help='Spatial resolution S (default: 32)')
+    parser.add_argument('--batch_size', type=int, default=1,
+                       help='Mini-batch size (default: 1)')
     
     return parser.parse_args()
 
@@ -96,6 +98,7 @@ ft_implementation = args.ft_implementation
 modes = args.modes
 width = args.width
 S = args.spatial_size
+batch_size = int(args.batch_size)
 
 print(f"========================================")
 print(f"STFNO Compression Study Configuration")
@@ -169,7 +172,6 @@ S_r_hdf5file = S_r # >= S_r
 S_theta_hdf5file = S_theta  # >= S_theta
 S_phi_hdf5file = 32 # >= S_phi
 
-batch_size = 1 #1 # 20
 learning_rate = 0.001
 epochs = epochs_override  # Number of training epochs (overridden by command line)
 iterations = epochs*(ntrain//batch_size)

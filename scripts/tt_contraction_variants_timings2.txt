@@ -1,0 +1,23 @@
+Device: cpu
+
+######################################################################
+TT BENCH CONFIG:
+  W shape: (16,16,16,16,16)  rank=4
+######################################################################
+Average Dense einsum time: 13.104 ms
+Median Dense einsum time: 0.323 ms
+Average TT contraction (original pattern) time: 30.163 ms
+Median TT contraction (original pattern) time: 4.509 ms
+Mean absolute diff vs dense: 3.120e+00
+TT speedup vs dense: 0.43x mean, 0.07x median
+
+######################################################################
+TT BENCH CONFIG:
+  W shape: (32,32,32,32,32)  rank=4
+######################################################################
+Average Dense einsum time: 445.017 ms
+Median Dense einsum time: 376.105 ms
+Average TT contraction (original pattern) time: 23.515 ms
+Median TT contraction (original pattern) time: 4.882 ms
+Mean absolute diff vs dense: 4.470e+00
+TT speedup vs dense: 18.93x mean, 77.04x median

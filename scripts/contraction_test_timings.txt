@@ -1,0 +1,44 @@
+Device: cpu
+
+
+######################################################################
+TESTING CONFIGURATION:
+  W: (16, 16, 16, 16, 16)
+  x: (16, 16, 16, 16)
+  TT rank: 4, QTT rank: 4
+######################################################################
+
+1. Dense contraction (einsum)...
+   Mean: 1.716 ms  Median: 0.423 ms  Output shape: torch.Size([16, 16, 16, 16])
+
+2. TT decomposition...
+   Mean: 276.910 ms  Median: 215.365 ms
+
+============================================================
+CONTRACTION PERFORMANCE
+============================================================
+
+TT contraction: Mean: 19.690 ms  Median: 3.664 ms  Output shape: torch.Size([16, 16, 16, 16])
+TT speedup vs dense: 0.09x mean, 0.12x median
+Mean absolute diff vs dense: 3.120e+00
+
+######################################################################
+TESTING CONFIGURATION:
+  W: (32, 32, 32, 32, 32)
+  x: (32, 32, 32, 32)
+  TT rank: 4, QTT rank: 4
+######################################################################
+
+1. Dense contraction (einsum)...
+   Mean: 400.243 ms  Median: 397.082 ms  Output shape: torch.Size([32, 32, 32, 32])
+
+2. TT decomposition...
+   Mean: 4600.324 ms  Median: 4549.163 ms
+
+============================================================
+CONTRACTION PERFORMANCE
+============================================================
+
+TT contraction: Mean: 26.387 ms  Median: 5.764 ms  Output shape: torch.Size([32, 32, 32, 32])
+TT speedup vs dense: 15.17x mean, 68.90x median
+Mean absolute diff vs dense: 4.470e+00

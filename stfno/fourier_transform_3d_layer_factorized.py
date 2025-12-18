@@ -19,11 +19,27 @@ import torch.nn as nn
 import tensorly as tl
 from tensorly.plugins import use_opt_einsum
 from tltorch.factorized_tensors.core import FactorizedTensor
-from .qtt import QTTWeight
 from torch.cuda import Event
 import time
 import os
 from contextlib import contextmanager
+
+from .tt_ops import (
+    benchmark_tt,
+    regular_contraction,
+    regular_contraction_batched,
+    to_tt,
+    tt_contraction,
+)
+
+from .tt_ops import (
+    regular_contraction,
+    regular_contraction_batched,
+    to_tt,
+    tt_contraction,
+    benchmark_tt
+)
+
 
 def get_time(use_cuda: bool):
     """Create timers. Use CUDA events only when explicitly requested, else CPU timer.
@@ -57,52 +73,6 @@ tl.set_backend("pytorch")
 use_opt_einsum("optimal")
 einsum_symbols = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-# Global cache for spatial indices to share across all layer instances
-_GLOBAL_SPATIAL_CACHE = {}
-_MAX_CACHE_SIZE = 50  # Limit cache size to prevent memory leaks
-
-def _cleanup_cache_if_needed():
-    """Clean up global cache if it gets too large."""
-    global _GLOBAL_SPATIAL_CACHE
-    if len(_GLOBAL_SPATIAL_CACHE) > _MAX_CACHE_SIZE:
-        # Keep only the most recent entries (simple LRU approximation)
-        items = list(_GLOBAL_SPATIAL_CACHE.items())
-        _GLOBAL_SPATIAL_CACHE = dict(items[-_MAX_CACHE_SIZE//2:])
-
-def clear_spatial_cache():
-    """Manually clear the global spatial indices cache."""
-    global _GLOBAL_SPATIAL_CACHE
-    _GLOBAL_SPATIAL_CACHE.clear()
-
-def _get_cached_spatial_indices(sx: int, sy: int, sz: int, batch_size: int, device: torch.device) -> torch.Tensor | None:
-    """Get cached spatial indices for QTT operator, creating if necessary.
-    
-    Returns cached indices tensor of shape (batch_size * sx * sy * sz, 3) or None if caching fails.
-    """
-    try:
-        cache_key = (sx, sy, sz, str(device))
-        S = sx * sy * sz
-        
-        if cache_key not in _GLOBAL_SPATIAL_CACHE:
-            # Clean up cache if needed before adding new entry
-            _cleanup_cache_if_needed()
-            
-            # Create base spatial grid once
-            ix = torch.arange(sx, device=device, dtype=torch.long)
-            iy = torch.arange(sy, device=device, dtype=torch.long)
-            iz = torch.arange(sz, device=device, dtype=torch.long)
-            gx, gy, gz = torch.meshgrid(ix, iy, iz, indexing='ij')
-            base_grid = torch.stack((gx, gy, gz), dim=-1).reshape(S, 3)  # (S, 3)
-            _GLOBAL_SPATIAL_CACHE[cache_key] = base_grid
-        
-        # Expand for current batch size
-        base_grid = _GLOBAL_SPATIAL_CACHE[cache_key]
-        return base_grid.repeat(batch_size, 1)  # (batch_size * S, 3)
-    
-    except Exception:
-        # Return None to trigger fallback to original implementation
-        return None
-
 
 def _contract_dense(x, weight, separable=False):
     """Dense contraction using torch.einsum for 3D spectral convolution"""
@@ -121,105 +91,6 @@ def _contract_dense(x, weight, separable=False):
     # Output should be (batch, out_channels, x, y, z)
     return torch.einsum("bixyz,ioxyz->boxyz", x, weight_sliced)
 
-
-def _contract_qtt_operator(x: torch.Tensor, qtt_weight: QTTWeight, separable: bool = False) -> torch.Tensor:
-    """Apply QTT weight as a linear operator without reconstructing dense weights.
-
-    x: (batch, in_channels, sx, sy, sz), complex
-    Returns: (batch, out_channels, sx, sy, sz)
-
-    Strategy: reshape to rows (B·S, Cin) and invoke a batched matvec on qtt_weight.
-    Falls back to dense reconstruction if the fast path is unavailable.
-    """
-    B, Cin, sx, sy, sz = x.shape
-    S = sx * sy * sz
-    # Fine-grained timing for reshape/permute around the operator-path
-    timing_on = str(os.environ.get("STFNO_QTT_TIMING", "0")).strip().lower() not in ("0", "false", "no", "off", "")
-    def _sync():
-        try:
-            if x.is_cuda:
-                torch.cuda.synchronize(x.device)
-        except Exception:
-            pass
-    # Only collect row reshape/permute timings when single-einsum fast path is eligible
-    use_einsum = bool(getattr(qtt_weight, '_use_single_einsum', False)) and getattr(qtt_weight, '_tt_order', '') == 'in-bits-out'
-    pre_times = {}
-    if timing_on and use_einsum:
-        _sync(); t0 = time.perf_counter()
-    # (B, Cin, S)
-    tmp1 = x.reshape(B, Cin, S)
-    if timing_on and use_einsum:
-        _sync(); pre_times["pre_reshape1_ms"] = (time.perf_counter() - t0) * 1e3; t0 = time.perf_counter()
-    # (B, S, Cin)
-    tmp2 = tmp1.permute(0, 2, 1).contiguous()
-    if timing_on and use_einsum:
-        _sync(); pre_times["pre_permute_ms"] = (time.perf_counter() - t0) * 1e3; t0 = time.perf_counter()
-    # (B·S, Cin)
-    rows = tmp2.reshape(B * S, Cin)
-    if timing_on and use_einsum:
-        _sync(); pre_times["pre_reshape2_ms"] = (time.perf_counter() - t0) * 1e3
-    
-    # Use cached spatial indices if available
-    indices = _get_cached_spatial_indices(sx, sy, sz, B, x.device)
-    if indices is None:
-        # Fallback to original implementation if caching fails
-        ix = torch.arange(sx, device=x.device, dtype=torch.long)
-        iy = torch.arange(sy, device=x.device, dtype=torch.long)
-        iz = torch.arange(sz, device=x.device, dtype=torch.long)
-        # Meshgrid in (x,y,z) order and flatten to (S,3)
-        gx, gy, gz = torch.meshgrid(ix, iy, iz, indexing='ij')
-        grid = torch.stack((gx, gy, gz), dim=-1).reshape(S, 3)  # (S,3)
-        indices = grid.repeat(B, 1)  # (B·S, 3)
-    # Prefer a dedicated operator apply if provided by QTTWeight
-    y_rows = None
-    strict_no_fallback = (os.environ.get("STFNO_QTT_NO_DENSE_FALLBACK", "0") == "1")
-    if hasattr(qtt_weight, 'matmul') and callable(getattr(qtt_weight, 'matmul')):
-        try:
-            y_rows = qtt_weight.matmul(rows, indices=indices)
-        except Exception as e:
-            if strict_no_fallback:
-                raise
-            y_rows = None
-    if y_rows is None and hasattr(qtt_weight, 'apply_linear') and callable(getattr(qtt_weight, 'apply_linear')):
-        try:
-            y_rows = qtt_weight.apply_linear(rows, indices=indices)
-        except Exception as e:
-            if strict_no_fallback:
-                raise
-            y_rows = None
-    if y_rows is None:
-        # Fallback to dense reconstruction path for correctness unless disallowed
-        if strict_no_fallback:
-            raise RuntimeError("QTT operator apply failed and dense fallback is disabled by STFNO_QTT_NO_DENSE_FALLBACK=1")
-        return _contract_dense(x, qtt_weight, separable=separable)
-    # Post reshape/permute timings
-    post_times = {}
-    Cout = y_rows.shape[1]
-    if timing_on and use_einsum:
-        _sync(); t1 = time.perf_counter()
-    tmp3 = y_rows.reshape(B, S, Cout)
-    if timing_on and use_einsum:
-        _sync(); post_times["post_reshape1_ms"] = (time.perf_counter() - t1) * 1e3; t1 = time.perf_counter()
-    tmp4 = tmp3.permute(0, 2, 1).contiguous()
-    if timing_on and use_einsum:
-        _sync(); post_times["post_permute_ms"] = (time.perf_counter() - t1) * 1e3; t1 = time.perf_counter()
-    y = tmp4.reshape(B, Cout, sx, sy, sz)
-    if timing_on and use_einsum:
-        _sync(); post_times["post_reshape2_ms"] = (time.perf_counter() - t1) * 1e3
-
-    # Attach reshape/permute timings to the last op timing dict for visibility
-    if timing_on and use_einsum and hasattr(qtt_weight, "_last_op_timing"):
-        try:
-            # Aggregate pre/post totals too
-            pre_total = sum(float(v) for v in pre_times.values()) if pre_times else 0.0
-            post_total = sum(float(v) for v in post_times.values()) if post_times else 0.0
-            qtt_weight._last_op_timing.update(pre_times)
-            qtt_weight._last_op_timing.update(post_times)
-            qtt_weight._last_op_timing["pre_rows_ms"] = pre_total
-            qtt_weight._last_op_timing["post_rows_ms"] = post_total
-        except Exception:
-            pass
-    return y
 
 
 def _contract_tucker(x, tucker_weight, separable=False):
@@ -269,45 +140,63 @@ def _contract_cp(x, cp_weight, separable=False):
     return tl.einsum(eq, x, cp_weight.weights, *cp_weight.factors)
 
 
+def _contract_tt_factorized(x, tt_weight, separable=False):
+    """TT contraction using FactorizedTensor factors (borrowed pattern from spectral_convolution).
+
+    This is called contract_tt() in spectral_convolution.py, from the FNO repo.
+    
+    This is distinct from the single-einsum core contraction: it uses the TT factors
+    stored in the FactorizedTensor and a multi-operand einsum.
+    """
+    order = tl.ndim(x)
+
+    x_syms = list(einsum_symbols[:order])
+    weight_syms = list(x_syms[1:])  # no batch-size
+    if not separable:
+        weight_syms.insert(1, einsum_symbols[order])  # outputs
+        out_syms = list(weight_syms)
+        out_syms[0] = x_syms[0]
+    else:
+        out_syms = list(x_syms)
+    rank_syms = list(einsum_symbols[order + 1 :])
+    tt_syms = []
+    for i, s in enumerate(weight_syms):
+        tt_syms.append([rank_syms[i], s, rank_syms[i + 1]])
+    eq = (
+        "".join(x_syms)
+        + ","
+        + ",".join("".join(f) for f in tt_syms)
+        + "->"
+        + "".join(out_syms)
+    )
+
+    return tl.einsum(eq, x, *tt_weight.factors)
+
+
 def get_contract_fun(weight, implementation="reconstructed", separable=False):
-    """Get contraction function for factorized weights"""
+    """Return contraction function.
+
+    Supported paths:
+      - dense (reconstructed)
+      - TT cores via ParameterList (handled in compl_mul3d)
+      - TT FactorizedTensor (factorized einsum path below)
+    """
     if implementation == "reconstructed":
         return _contract_dense
-    elif implementation == "factorized":
+    if implementation == "factorized":
         if torch.is_tensor(weight):
             return _contract_dense
-        # For QTT use an operator path to avoid dense reconstruction
-        elif isinstance(weight, QTTWeight):
-            # Allow a debug override via env var: STFNO_QTT_OP in {auto,operator,dense}
-            mode = (os.environ.get("STFNO_QTT_OP", "auto") or "auto").lower()
-            if mode not in ("auto", "operator", "dense"):
-                mode = "auto"
-            if mode == "operator" and not separable:
-                return _contract_qtt_operator
-            if mode == "dense":
-                return _contract_dense
-            # auto: use operator for non-separable
-            return _contract_qtt_operator if not separable else _contract_dense
-        elif isinstance(weight, FactorizedTensor):
-            if weight.name.lower().endswith("dense"):
-                return _contract_dense
-            elif weight.name.lower().endswith("tucker"):
-                return _contract_tucker
-            elif weight.name.lower().endswith("cp"):
-                return _contract_cp
-            elif weight.name.lower().endswith("tt"):
-                # For TT, use dense fallback for now (modes are small)
-                return _contract_dense
-            else:
-                raise ValueError(f"Got unexpected factorized weight type {weight.name}")
-        else:
-            raise ValueError(
-                f"Got unexpected weight type of class {weight.__class__.__name__}"
-            )
-    else:
-        raise ValueError(
-            f'Got implementation={implementation}, expected "reconstructed" or "factorized"'
-        )
+        if isinstance(weight, nn.ParameterList):
+            return _contract_dense
+        if isinstance(weight, FactorizedTensor):
+            name = (getattr(weight, "name", "") or "").lower()
+            if name.endswith("tt"):
+                return _contract_tt_factorized
+            return _contract_dense
+        raise ValueError(f"Unsupported weight type for factorized path: {weight.__class__.__name__}")
+    raise ValueError(
+        f'Got implementation={implementation}, expected "reconstructed" or "factorized"'
+    )
 
 
 class FactorizedSpectralConv3d(nn.Module):
@@ -324,6 +213,11 @@ class FactorizedSpectralConv3d(nn.Module):
             'fft_ms': 0.0,
             'contract_ms': 0.0,
             'ifft_ms': 0.0,
+            'reconstruct_ms': 0.0,
+            'tt_core_ms': 0.0,
+            'tt_regular_ms': 0.0,
+            'tt_batched_ms': 0.0,
+            'tt_fact_ms': 0.0,
         }
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -336,10 +230,6 @@ class FactorizedSpectralConv3d(nn.Module):
         self.separable = separable
         self.fft_norm = fft_norm
         
-        # Initialize caching for spatial indices and bit patterns (QTT operator optimization)
-        self._spatial_indices_cache = {}  # Cache by (sx, sy, sz, device)
-        self._bit_patterns_cache = {}     # Cache by (spatial_size, meta_info)
-        
         # Initialize std for weight initialization
         if init_std == "auto":
             init_std = (2 / (in_channels + out_channels))**0.5
@@ -350,6 +240,13 @@ class FactorizedSpectralConv3d(nn.Module):
         # Create factorized weights for each of the 4 corners in 3D FFT
         self.weights = []
 
+        self._tt_rank_by_idx = {}
+        self._tt_dense_refs = {}
+
+        corner_m1 = max(1, modes1 // 2)
+        corner_m2 = max(1, modes2 // 2)
+        corner_m3 = modes3
+
         if separable:
             if in_channels != out_channels:
                 raise ValueError(
@@ -357,9 +254,9 @@ class FactorizedSpectralConv3d(nn.Module):
                     f"to out_channels, but got in_channels={in_channels} and "
                     f"out_channels={out_channels}",
                 )
-            weight_shape = (in_channels, modes1, modes2, modes3)
+            weight_shape = (in_channels, corner_m1, corner_m2, corner_m3)
         else:
-            weight_shape = (in_channels, out_channels, modes1, modes2, modes3)
+            weight_shape = (in_channels, out_channels, corner_m1, corner_m2, corner_m3)
 
         # Initialize 4 factorized weight tensors for 3D FFT (similar to original implementation)
         for i in range(4):
@@ -368,56 +265,26 @@ class FactorizedSpectralConv3d(nn.Module):
                 w = nn.Parameter(torch.zeros(weight_shape, dtype=torch.cfloat))
                 nn.init.normal_(w, 0, init_std)
 
-            # QTT branch: use QTTWeight; detect by suffix to be robust
-            elif isinstance(factorization, str) and (fact_lower == 'qtt' or fact_lower.endswith("qtt")):
-                # Default to the optimized 'in-bits-out' ordering when using QTT
-                qtt_order = (os.environ.get("STFNO_QTT_ORDER", "in-bits-out") or "in-bits-out").lower()
-                if qtt_order not in ("in-out-bits", "in-bits-out"):
-                    qtt_order = "in-bits-out"
-                # Allow configuring how many trailing dims to fold via env var.
-                # Default is 3 (spatial-only). Use 4 to fold (out + 3 spatial), or 5 to fold (in, out, 3 spatial).
-                try:
-                    fold_ndims = int(os.environ.get("STFNO_QTT_FOLD_NDIMS", "3"))
-                except Exception:
-                    fold_ndims = 3
-                # Clamp to valid range [0, order]
-                try:
-                    max_ndims = len(weight_shape)
-                except Exception:
-                    max_ndims = 3
-                if fold_ndims < 0:
-                    fold_ndims = 0
-                if fold_ndims > max_ndims:
-                    fold_ndims = max_ndims
-                w = QTTWeight(
-                    weight_shape,
-                    rank=self.rank,  # same semantics as TT
-                    quantize_last_ndims=fold_ndims,  # controlled via STFNO_QTT_FOLD_NDIMS; default 3 (spatial only)
-                    base=2,
-                    dtype=torch.cfloat,
-                    init_std=init_std,
-                    tt_order=qtt_order,
-                )
+            # TT path using tensorly decomposition (matches contraction_test single-einsum)
+            elif isinstance(factorization, str) and fact_lower in ('tt', 'tensor_train'):
+                dense_init = torch.randn(weight_shape, dtype=torch.float32) * float(init_std)
+                rank_int = int(self.rank) if isinstance(self.rank, (int, float)) else 16
+                cores, _ = to_tt(dense_init, max_rank=rank_int)
+                core_params = nn.ParameterList([nn.Parameter(c.to(torch.cfloat)) for c in cores])
+                setattr(core_params, "_stfno_weight_index", i)
+                self._tt_rank_by_idx[i] = rank_int
+                self._tt_dense_refs[i] = dense_init.to(torch.cfloat)
+                w = core_params
 
-            # Other factorized forms via tltorch
-            else:
-                # Map common names to complex variants for tltorch
-                if fact_lower in ('tt', 'complextt'):
-                    fact_name = 'ComplexTT'
-                elif fact_lower in ('cp', 'complexcp'):
-                    fact_name = 'ComplexCP'
-                elif fact_lower in ('tucker', 'complextucker'):
-                    fact_name = 'ComplexTucker'
-                else:
-                    # Assume caller passed a valid tltorch factorization name
-                    fact_name = factorization
+            # TT FactorizedTensor path (tl.einsum over TT factors)
+            elif isinstance(factorization, str) and fact_lower in ('tt_factorized', 'tt_ft', 'tt_tltorch', 'tt_alt'):
+                fact_name = 'ComplexTT'
                 w = FactorizedTensor.new(
                     weight_shape,
                     rank=self.rank,
                     factorization=fact_name,
                     dtype=torch.cfloat,
                 )
-                # Safer initialization to avoid NaNs in tltorch core init
                 try:
                     std = float(init_std)
                 except Exception:
@@ -432,20 +299,9 @@ class FactorizedSpectralConv3d(nn.Module):
                         w.normal_(0, std)
                     except Exception:
                         pass
-                # Sanitize factor components if present
-                for attr in ("factors", "factors_list", "cores", "weights", "components"):
-                    fs = getattr(w, attr, None)
-                    if fs is None:
-                        continue
-                    if isinstance(fs, (list, tuple)):
-                        for f in fs:
-                            data = getattr(f, "data", None)
-                            if data is not None:
-                                f.data = torch.nan_to_num(f.data, nan=0.0, posinf=1e3, neginf=-1e3)
-                    else:
-                        data = getattr(fs, "data", None)
-                        if data is not None:
-                            fs.data = torch.nan_to_num(fs.data, nan=0.0, posinf=1e3, neginf=-1e3)
+
+            else:
+                raise ValueError("Only dense, TT (cores), or TT FactorizedTensor paths are supported.")
 
             setattr(self, f'weight_{i}', w)
             self.weights.append(w)
@@ -461,35 +317,91 @@ class FactorizedSpectralConv3d(nn.Module):
             w0 = self.weights[0]
             if torch.is_tensor(w0):
                 self._contract_label = 'dense'
-            elif isinstance(w0, QTTWeight):
-                # Mirror env override in label for clarity
-                mode = (os.environ.get("STFNO_QTT_OP", "auto") or "auto").lower()
-                if mode == "dense":
-                    self._contract_label = 'dense'
-                elif mode == "operator" and not separable:
-                    order = getattr(w0, '_tt_order', 'in-out-bits')
-                    self._contract_label = f'qtt_op[{order}]'
-                else:
-                    order = getattr(w0, '_tt_order', 'in-out-bits')
-                    self._contract_label = (f'qtt_op[{order}]' if not separable else 'dense')
+            elif isinstance(w0, nn.ParameterList):
+                self._contract_label = 'tt_ref'
             elif isinstance(w0, FactorizedTensor):
-                nm = (getattr(w0, 'name', '') or '').lower()
-                if nm.endswith('tucker'):
-                    self._contract_label = 'tucker'
-                elif nm.endswith('cp'):
-                    self._contract_label = 'cp'
-                else:
-                    self._contract_label = 'dense'
+                self._contract_label = 'tt_fact'
             else:
                 self._contract_label = 'unknown'
     
+    #RECONTRUCT_MS IS TIMED HERE
     def compl_mul3d(self, input, weights):
         """Complex multiplication for 3D case"""
+        if isinstance(weights, nn.ParameterList):
+            idx = getattr(weights, "_stfno_weight_index", None)
+            return self._contract_tt_reference(input, weights, idx)
+
+        # If we are in a reconstructed path (FactorizedTensor -> dense), time the materialization.
+        if self._contract is _contract_dense and not torch.is_tensor(weights):
+            recon_start = time.perf_counter() if self.timing else None
+            dense_weight = weights.to_tensor()
+            if recon_start is not None:
+                self.last_timing['reconstruct_ms'] += float((time.perf_counter() - recon_start) * 1e3)
+            return _contract_dense(input, dense_weight, separable=self.separable)
+
+        # FactorizedTensor TT direct contraction timing
+        if isinstance(weights, FactorizedTensor):
+            name = (getattr(weights, "name", "") or "").lower()
+            if name.endswith("tt"):
+                t0 = time.perf_counter() if self.timing else None
+                out = self._contract(input, weights, separable=self.separable)
+                if t0 is not None:
+                    self.last_timing['tt_fact_ms'] += float((time.perf_counter() - t0) * 1e3)
+                return out
+
         return self._contract(input, weights, separable=self.separable)
+
+#THIS IS WHERE CONTRACTION HAPPENS TT 
+
+    def _contract_tt_reference(self, x, tt_params: nn.ParameterList, idx: int | None):
+        """Apply TT cores using the same contraction implementation as contraction_test.py."""
+        cores = [core for core in tt_params]
+        rank = self._tt_rank_by_idx.get(idx or 0, int(self.rank) if isinstance(self.rank, (int, float)) else 16)
+        dense_weight = self._tt_dense_refs.get(idx or 0)
+        batch, *_ = x.shape
+        start = time.perf_counter() if self.timing else None
+        core_start = time.perf_counter() if self.timing else None
+        y = None
+
+        #THE FOLLOWING BLOCK TRIES BATCHED FIRST THEN FALLS BACK TO NON BATCHED IF IT FAILS
+        
+        try:
+            # Batched contraction (preferred)
+            y = tt_contraction(cores, x)
+        except Exception:
+            # Fallback to per-sample to preserve correctness
+            outputs: list[torch.Tensor] = []
+            for b in range(batch):
+                xb = x[b]
+                outputs.append(tt_contraction(cores, xb))
+            if outputs:
+                y = torch.stack(outputs, dim=0)
+        if y is None:
+            spatial = x.shape[2:]
+            return x.new_zeros((0, self.out_channels, *spatial))
+        if self.timing and batch > 0:
+            contract_ms = (time.perf_counter() - start) * 1e3 if start is not None else 0.0
+            core_ms = (time.perf_counter() - core_start) * 1e3 if core_start is not None else 0.0
+            self.last_timing['tt_core_ms'] += float(core_ms)
+            # Always use measured contraction time for reporting; keep profiles as auxiliary
+            self.last_timing['contract_ms'] = float(contract_ms)
+            if dense_weight is not None:
+                try:
+                    profile, _ = benchmark_tt(dense_weight, x[0], rank, cores=cores)
+                    self.last_timing['tt_regular_ms'] = float(profile.regular_ms)
+                    self.last_timing['tt_batched_ms'] = float(profile.batched_ms)
+                except Exception:
+                    self.last_timing['tt_regular_ms'] = float(contract_ms)
+                    self.last_timing['tt_batched_ms'] = float(contract_ms)
+        return y
     
     def forward(self, x):
         batchsize = x.shape[0]
         use_cuda_timing = x.is_cuda and torch.cuda.is_available()
+
+        # Reset per-forward accumulators
+        self.last_timing['reconstruct_ms'] = 0.0
+        self.last_timing['tt_core_ms'] = 0.0
         
         # Time FFT
         start, end = get_time(use_cuda_timing)
@@ -499,6 +411,7 @@ class FactorizedSpectralConv3d(nn.Module):
 
         out_fft = torch.zeros(batchsize, self.out_channels, x.size(-3), x.size(-2), 
                              x.size(-1)// 2 + 1, dtype=torch.cfloat, device=x.device)
+        
         
         # Define slices for the 4 corners in 3D FFT
         slices0 = (
@@ -530,6 +443,8 @@ class FactorizedSpectralConv3d(nn.Module):
             slice(self.modes3),  # :modes3
         )
         
+
+        #CONTRACTION IS TIMED HERE
         # Time contractions
         start, end = get_time(use_cuda_timing)
         out_fft[slices0] = self.compl_mul3d(x_ft[slices0], self.weights[0])
@@ -549,5 +464,23 @@ class FactorizedSpectralConv3d(nn.Module):
         self.last_timing['contract_ms'] = float(contract_time)
         self.last_timing['ifft_ms'] = float(ifft_time)
         if self.timing:
-            print(f"Times - FFT: {fft_time:.2f}ms, Contractions: {contract_time:.2f}ms, IFFT: {ifft_time:.2f}ms | Path: {self._contract_label}")
+            recon_ms = self.last_timing.get('reconstruct_ms', 0.0)
+            tt_core_ms = self.last_timing.get('tt_core_ms', 0.0)
+            tt_fact_ms = self.last_timing.get('tt_fact_ms', 0.0)
+            extras = []
+            if recon_ms > 0:
+                extras.append(f"Recon: {recon_ms:.2f}ms")
+            if tt_core_ms > 0:
+                extras.append(f"TT-core: {tt_core_ms:.2f}ms")
+            if tt_fact_ms > 0:
+                extras.append(f"TT-fact: {tt_fact_ms:.2f}ms")
+            if self.last_timing.get('tt_regular_ms', 0.0) > 0:
+                extras.append(f"TT-regular: {self.last_timing['tt_regular_ms']:.2f}ms")
+            if self.last_timing.get('tt_batched_ms', 0.0) > 0:
+                extras.append(f"TT-batched: {self.last_timing['tt_batched_ms']:.2f}ms")
+            extras_str = ", ".join(extras)
+            extra_display = f" | {extras_str}" if extras_str else ""
+            print(
+                f"Times - FFT: {fft_time:.2f}ms, Contractions: {contract_time:.2f}ms, IFFT: {ifft_time:.2f}ms | Path: {self._contract_label}{extra_display}"
+            )
         return x

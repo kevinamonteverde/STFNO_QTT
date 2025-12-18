@@ -1,0 +1,1173 @@
+========================================
+STFNO Compression Study Configuration
+========================================
+Factorization Type: tt
+Factorization Rank: 4.0
+Output Directory: results_tt_compare
+Training Epochs: 1
+Spectral Implementation: factorized
+========================================
+
+ T_in = 1
+ T_out = 1
+ step = 1
+ T_out_sub_time_consecutiveIterator_factor = 1
+ paramters: npvbj
+    1 : 3  - F_( 10 , 3 )
+    4 : 6  - F_( 6 , 3 )
+    7 : 7  - F_( 10 , 1 )
+    8 : 10  - F_( 6 , 3 )
+ S_r= 32 S_theta= 32 S_n_phi= 32
+ T_in = 1
+ T_out = 1
+ step = 1
+ number of layers 1
+ Reading h5py data from the path: /global/cfs/cdirs/mp127/nimrod/nimrod_hdf513_simulationII3Dhypdifusvity_dump_data/npvjb_S32_dump_data_2/
+ Data Normalized
+ ntrain =  128
+ ntest =  129
+ snapshots for training:  [21000, 35600, 54000, 12200, 57400, 27200, 15800, 31800, 37400, 56000, 23800, 22600, 45400, 23600, 55800, 20000, 23400, 28400, 48600, 41200, 51000, 25400, 19800, 45000, 38200, 51200, 25000, 57000, 62000, 51600, 61600, 42600, 42200, 50800, 36600, 41600, 30800, 22200, 31200, 33800, 20200, 21800, 39000, 14600, 20600, 38400, 62800, 63200, 18000, 21200, 51800, 49800, 26200, 63000, 24600, 13200, 58000, 59200, 17800, 18400, 30400, 55600, 46600, 20800, 55200, 35200, 61800, 60400, 40800, 33200, 57800, 25800, 56800, 33000, 17200, 44800, 29200, 43800, 34000, 35400, 29600, 12800, 47800, 54600, 14200, 22000, 59600, 43400, 31000, 35800, 31400, 52600, 52200, 40400, 29400, 46400, 25600, 58800, 44200, 13000, 34400, 29800, 56200, 49400, 14400, 13400, 32800, 22800, 43000, 37600, 32200, 44400, 17600, 54800, 46800, 18800, 30600, 12400, 45800, 58600, 33600, 20400, 61200, 27000, 50000, 14800, 27600, 49600]
+ snapshots for testing:  [16200, 60600, 50400, 35000, 39400, 33400, 59800, 24000, 53000, 26000, 38800, 32000, 45200, 47400, 13800, 19600, 18600, 16400, 15400, 36200, 58200, 13600, 60000, 49000, 21400, 46000, 48400, 41400, 47200, 31600, 42400, 47600, 53200, 26600, 42000, 45600, 57200, 53800, 39600, 50200, 52400, 18200, 26800, 53600, 61000, 17400, 37000, 62200, 28200, 16000, 62400, 34800, 39800, 19200, 24200, 23200, 41000, 21600, 15200, 60200, 28600, 56400, 24400, 29000, 37200, 54200, 12000, 44000, 46200, 48200, 32400, 48800, 16600, 12600, 40000, 15000, 62600, 38600, 34600, 60800, 40200, 22400, 44600, 43200, 28000, 34200, 30000, 56600, 40600, 36000, 28800, 47000, 55400, 15600, 49200, 17000, 27800, 19400, 42800, 53400, 48000, 39200, 24800, 52800, 43600, 16800, 50600, 59400, 26400, 19000, 37800, 23000, 58400, 57600, 41800, 30200, 36400, 27400, 54400, 52000, 59000, 32600, 36800, 38000, 61400, 25200, 14000, 55000, 51400]
+Now going to initialize the training and testing data
+Done initializing the training and testing data
+Device selection: cuda | torch.cuda.is_available()=True | CUDA_VISIBLE_DEVICES='')
+GPU[0]: name='NVIDIA A100-PCIE-40GB', capability=8.0, multiprocessors=108
+CUDA runtime: 12.1, cuDNN: 90100
+Model Summary:
+Times - FFT: 14.14ms, Contractions: 19.76ms, IFFT: 2.35ms | Path: dense
+Times - FFT: 1.28ms, Contractions: 1.93ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 6.73ms, IFFT: 1.15ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.73ms, IFFT: 0.08ms | Path: dense
+====================================================================================================
+Layer (type:depth-idx)                             Output Shape              Param #
+====================================================================================================
+FNO2d_NIMRODglobal_3D                              [1, 32, 32, 32, 10]       --
+├─ModuleList: 1-1                                  --                        --
+│    └─Linear: 2-1                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-2                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-3                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-4                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-5                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-6                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-7                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-8                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-9                                 [1, 32, 32, 32, 8]        40
+│    └─Linear: 2-10                                [1, 32, 32, 32, 8]        40
+├─ModuleList: 1-17                                 --                        --
+│    └─ModuleList: 2-26                            --                        --
+│    │    └─InstanceNorm3d: 3-1                    [1, 80, 32, 32, 32]       --
+├─ModuleList: 1-18                                 --                        (recursive)
+│    └─ModuleList: 2-27                            --                        (recursive)
+│    │    └─FactorizedSpectralConv3d: 3-2          [1, 24, 32, 32, 32]       13,280,976
+├─ModuleList: 1-19                                 --                        --
+│    └─ModuleList: 2-28                            --                        --
+│    │    └─InstanceNorm3d: 3-3                    [1, 24, 32, 32, 32]       --
+├─ModuleList: 1-20                                 --                        (recursive)
+│    └─ModuleList: 2-29                            --                        (recursive)
+│    │    └─MLP_3D: 3-4                            [1, 24, 32, 32, 32]       1,200
+├─ModuleList: 1-21                                 --                        (recursive)
+│    └─ModuleList: 2-30                            --                        (recursive)
+│    │    └─Conv3d: 3-5                            [1, 24, 32, 32, 32]       1,944
+├─ModuleList: 1-17                                 --                        --
+│    └─ModuleList: 2-26                            --                        --
+│    │    └─InstanceNorm3d: 3-6                    [1, 48, 32, 32, 32]       --
+├─ModuleList: 1-18                                 --                        (recursive)
+│    └─ModuleList: 2-27                            --                        (recursive)
+│    │    └─FactorizedSpectralConv3d: 3-7          [1, 24, 32, 32, 32]       7,967,664
+├─ModuleList: 1-19                                 --                        --
+│    └─ModuleList: 2-28                            --                        --
+│    │    └─InstanceNorm3d: 3-8                    [1, 24, 32, 32, 32]       --
+├─ModuleList: 1-20                                 --                        (recursive)
+│    └─ModuleList: 2-29                            --                        (recursive)
+│    │    └─MLP_3D: 3-9                            [1, 24, 32, 32, 32]       1,200
+├─ModuleList: 1-21                                 --                        (recursive)
+│    └─ModuleList: 2-30                            --                        (recursive)
+│    │    └─Conv3d: 3-10                           [1, 24, 32, 32, 32]       1,176
+├─ModuleList: 1-17                                 --                        --
+│    └─ModuleList: 2-26                            --                        --
+│    │    └─InstanceNorm3d: 3-11                   [1, 80, 32, 32, 32]       --
+├─ModuleList: 1-18                                 --                        (recursive)
+│    └─ModuleList: 2-27                            --                        (recursive)
+│    │    └─FactorizedSpectralConv3d: 3-12         [1, 8, 32, 32, 32]        4,425,408
+├─ModuleList: 1-19                                 --                        --
+│    └─ModuleList: 2-28                            --                        --
+│    │    └─InstanceNorm3d: 3-13                   [1, 8, 32, 32, 32]        --
+├─ModuleList: 1-20                                 --                        (recursive)
+│    └─ModuleList: 2-29                            --                        (recursive)
+│    │    └─MLP_3D: 3-14                           [1, 8, 32, 32, 32]        144
+├─ModuleList: 1-21                                 --                        (recursive)
+│    └─ModuleList: 2-30                            --                        (recursive)
+│    │    └─Conv3d: 3-15                           [1, 8, 32, 32, 32]        648
+├─ModuleList: 1-17                                 --                        --
+│    └─ModuleList: 2-26                            --                        --
+│    │    └─InstanceNorm3d: 3-16                   [1, 48, 32, 32, 32]       --
+├─ModuleList: 1-18                                 --                        (recursive)
+│    └─ModuleList: 2-27                            --                        (recursive)
+│    │    └─FactorizedSpectralConv3d: 3-17         [1, 24, 32, 32, 32]       7,967,664
+├─ModuleList: 1-19                                 --                        --
+│    └─ModuleList: 2-28                            --                        --
+│    │    └─InstanceNorm3d: 3-18                   [1, 24, 32, 32, 32]       --
+├─ModuleList: 1-20                                 --                        (recursive)
+│    └─ModuleList: 2-29                            --                        (recursive)
+│    │    └─MLP_3D: 3-19                           [1, 24, 32, 32, 32]       1,200
+├─ModuleList: 1-21                                 --                        (recursive)
+│    └─ModuleList: 2-30                            --                        (recursive)
+│    │    └─Conv3d: 3-20                           [1, 24, 32, 32, 32]       1,176
+├─ModuleList: 1-22                                 --                        --
+│    └─MLP_3D: 2-31                                [1, 3, 32, 32, 32]        --
+│    │    └─Conv3d: 3-21                           [1, 96, 32, 32, 32]       2,400
+│    │    └─Conv3d: 3-22                           [1, 3, 32, 32, 32]        291
+│    └─MLP_3D: 2-32                                [1, 3, 32, 32, 32]        --
+│    │    └─Conv3d: 3-23                           [1, 96, 32, 32, 32]       2,400
+│    │    └─Conv3d: 3-24                           [1, 3, 32, 32, 32]        291
+│    └─MLP_3D: 2-33                                [1, 1, 32, 32, 32]        --
+│    │    └─Conv3d: 3-25                           [1, 32, 32, 32, 32]       288
+│    │    └─Conv3d: 3-26                           [1, 1, 32, 32, 32]        33
+│    └─MLP_3D: 2-34                                [1, 3, 32, 32, 32]        --
+│    │    └─Conv3d: 3-27                           [1, 96, 32, 32, 32]       2,400
+│    │    └─Conv3d: 3-28                           [1, 3, 32, 32, 32]        291
+====================================================================================================
+Total params: 33,659,194
+Trainable params: 33,659,194
+Non-trainable params: 0
+Total mult-adds (Units.MEGABYTES): 559.74
+====================================================================================================
+Input size (MB): 4.19
+Forward/backward pass size (MB): 170.39
+Params size (MB): 0.07
+Estimated Total Size (MB): 174.66
+====================================================================================================
+Model device: cuda:0
+Initialized the model, optimizer and scheduler
+Created the output dump files at results_tt_compare/
+ Training and testing the data
+Times - FFT: 0.11ms, Contractions: 2.85ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.63ms, IFFT: 0.24ms | Path: dense
+Times - FFT: 0.29ms, Contractions: 2.65ms, IFFT: 0.21ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.59ms, IFFT: 0.26ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 1.40ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.47ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.85ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.58ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.90ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.94ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.15ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.22ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.20ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.44ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.84ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.88ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.57ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 3.27ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.47ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.43ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.76ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.76ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.44ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.76ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.43ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.44ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.44ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.45ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 2.27ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.46ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.44ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.05ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.01ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.51ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.25ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.10ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 1.99ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.12ms, Contractions: 2.66ms, IFFT: 0.13ms | Path: dense
+Times - FFT: 0.11ms, Contractions: 2.34ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.13ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.12ms, Contractions: 2.87ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.52ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.07ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.08ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 1.40ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.04ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.76ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.98ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.93ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.98ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.60ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.85ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.66ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.98ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.93ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.47ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 65.63ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 1.02ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.97ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 1.02ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.55ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.45ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.76ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.43ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.45ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 2.23ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.40ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.00ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.95ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.93ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 37.96ms, IFFT: 0.11ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.01ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.98ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.41ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.98ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.97ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.93ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.38ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.97ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.96ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.92ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.38ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.95ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.96ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.91ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.53ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.99ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.98ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.92ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.43ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.13ms, Contractions: 2.25ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.00ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.94ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.12ms, Contractions: 2.69ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.04ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.74ms, IFFT: 0.02ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.65ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.88ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.50ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.06ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.62ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.86ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.45ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.43ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.76ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.45ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.45ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.45ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 1.80ms, IFFT: 0.58ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 2.00ms, IFFT: 0.02ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 1.73ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.06ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.05ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.99ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.45ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.05ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.31ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.47ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.05ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.98ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.11ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.49ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.07ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.98ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.46ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.02ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.00ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.46ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.02ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.04ms, IFFT: 0.17ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.98ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.07ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.04ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.97ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.45ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.05ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.99ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.46ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.24ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.00ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.46ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.12ms, IFFT: 0.02ms | Path: dense
+Times - FFT: 0.04ms, Contractions: 2.78ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 1.40ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.04ms, Contractions: 0.78ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.86ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.93ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.55ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.60ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.87ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.64ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.87ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.64ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.87ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.73ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.96ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.93ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.97ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.71ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.93ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.89ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.93ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.67ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.84ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.55ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.59ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.84ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.58ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.60ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 1.36ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.36ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.01ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.08ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.70ms, IFFT: 0.07ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.65ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.06ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.71ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.65ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.77ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 25.22ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.03ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.66ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.08ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.92ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.70ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.66ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.08ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.70ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.67ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.08ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.79ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.68ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.67ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 2.15ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 1.19ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.69ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.05ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.68ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.76ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.19ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.14ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.94ms, IFFT: 0.12ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.09ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.93ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.80ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.84ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.95ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.11ms, Contractions: 1.86ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.86ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.89ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.11ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.76ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.72ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.66ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.77ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.69ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.69ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.93ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 1.98ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.95ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.00ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.90ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.06ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.84ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.05ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.97ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.89ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.80ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.01ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.91ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.01ms, IFFT: 0.10ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.83ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.92ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.92ms, IFFT: 0.17ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.95ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.86ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.95ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.93ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 1.40ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.78ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.74ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 1.70ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 34.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.48ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.86ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.64ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.85ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.60ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.85ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.64ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.87ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.69ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.94ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.90ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.98ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.73ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 0.97ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.90ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.94ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.67ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.85ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.59ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.84ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.57ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.56ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.58ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.84ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.58ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 1.88ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.97ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.80ms, IFFT: 0.17ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 2.12ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.55ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.57ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.56ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.57ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.86ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.63ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.91ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 0.87ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.65ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.87ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.65ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.90ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.94ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.68ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.92ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.86ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.90ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.57ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.56ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.55ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.87ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.83ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.58ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.88ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.84ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.89ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.55ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.55ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.82ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.53ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.47ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.77ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.50ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.83ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.49ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.79ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.51ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.84ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.80ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.52ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.85ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 0.81ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.86ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.54ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.06ms, Contractions: 1.72ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 3.27ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 0.82ms, IFFT: 0.04ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 1.70ms, IFFT: 0.59ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.41ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.05ms, Contractions: 1.46ms, IFFT: 0.03ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.07ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.79ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.67ms, IFFT: 0.07ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.68ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.04ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.64ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.10ms, Contractions: 2.09ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.68ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.05ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.84ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.69ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.65ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.69ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.63ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.77ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 57.49ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.66ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.82ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.68ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.63ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.83ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.69ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.64ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.75ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 53.36ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.02ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.66ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.04ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.68ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.64ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.80ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.68ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.62ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.75ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 53.45ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.64ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.06ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.66ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.63ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.05ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.81ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.67ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.64ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.06ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.78ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.68ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.65ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.06ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.80ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.70ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.07ms, Contractions: 1.66ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 2.03ms, IFFT: 0.09ms | Path: dense
+Times - FFT: 0.09ms, Contractions: 1.77ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.68ms, IFFT: 0.08ms | Path: dense
+Times - FFT: 0.08ms, Contractions: 1.63ms, IFFT: 0.08ms | Path: dense
+ep= 0 , t2 - t1 (trainTime+testTime)= 16.093542040907778 , train_l2_step / ntrain / (T_out / step)= 0.38657926791347563 , train_l2_full / ntrain= 0.38657926791347563 , test_l2_step / ntest / (T_out / step)= 0.1855698033820751 , test_l2_full / ntest= 0.1855698033820751 , count_params(model)= 33659194 , t12mid - t1 (trainTime)= 10.874415425932966 , t2 - t12mid (testTime)= 5.219126614974812
+Finished training & testing the model with epochs

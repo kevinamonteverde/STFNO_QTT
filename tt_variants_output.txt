@@ -1,0 +1,33 @@
+Device: cpu
+
+######################################################################
+TT BENCH CONFIG:
+  W shape: (16,16,16,16,16)  rank=4
+######################################################################
+Dense einsum: 45.920 ms  out (16, 16, 16, 16)
+Dense batched: 8.162 ms  match=True
+Tensorly TT decompose: 175.766 ms  cores=[(16, 4), (4, 16, 4), (4, 16, 4), (4, 16, 4), (4, 16)]
+TT contraction (original pattern): 7.986 ms  mean|diff|=3.120e+00
+TT contraction (incremental analog): 83.126 ms  mean|diff|=3.120e+00
+TT reconstruct dense: 1.428 ms  + contract: 0.665 ms
+Recon match dense: False
+tltorch TT to_tensor: 1.391 ms  + contract: 0.425 ms
+--- FAIRNESS SUMMARY ---
+Dense(ref)=45.920ms | TT(orig)=7.986ms | Incremental=83.126ms | Decomp=175.766ms
+Mean |tltorch-dense - dense|: nan
+
+######################################################################
+TT BENCH CONFIG:
+  W shape: (32,32,32,32,32)  rank=4
+######################################################################
+Dense einsum: 372.031 ms  out (32, 32, 32, 32)
+Dense batched: 399.484 ms  match=True
+Tensorly TT decompose: 4284.434 ms  cores=[(32, 4), (4, 32, 4), (4, 32, 4), (4, 32, 4), (4, 32)]
+TT contraction (original pattern): 99.369 ms  mean|diff|=4.470e+00
+TT contraction (incremental analog): 107.337 ms  mean|diff|=4.470e+00
+TT reconstruct dense: 87.165 ms  + contract: 390.789 ms
+Recon match dense: False
+tltorch TT to_tensor: 120.743 ms  + contract: 470.136 ms
+--- FAIRNESS SUMMARY ---
+Dense(ref)=372.031ms | TT(orig)=99.369ms | Incremental=107.337ms | Decomp=4284.434ms
+Mean |tltorch-dense - dense|: 4.521e+00
