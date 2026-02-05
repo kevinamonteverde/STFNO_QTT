@@ -42,13 +42,14 @@ class FNO2d_NIMRODglobal_3D(nn.Module):
     def  __init__(self, modes1, modes2,modes3, width,T_in,
                                                 total_vector_a_elements_i,T,
                                                 total_vector_u_elements_i,number_of_layers,
-                                                input_parameter_order, 
-                                                mWidth_input_parameters, 
+                                                input_parameter_order,
+                                                mWidth_input_parameters,
                                                 nWidth_output_parameters,
                                                 if_model_jit_torchCompile,
-                                                factorization='tt',  # Add this
-                                                rank=6,
-                                                implementation='factorized'):
+                                                factorization='tt',
+                                                rank=4,
+                                                implementation='factorized',
+                                                quantize_last_ndims=3):
         super(FNO2d_NIMRODglobal_3D, self).__init__()        
         # if total_vector_u_elements_i == 10:
         #     self.input_parameter_order = [[0,1,2,3,4,5,6,7,8,9],[3,4,5,0,1,2],[6,0,1,2,3,4,5,7,8,9],[7,8,9,0,1,2]]
@@ -104,6 +105,7 @@ class FNO2d_NIMRODglobal_3D(nn.Module):
                                 rank=rank,
                                 implementation=implementation,
                                 separable=False,
+                                quantize_last_ndims=quantize_last_ndims,
                             )
                             for i in range(len(self.mWidth_input_parameters))
                         ])

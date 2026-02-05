@@ -58,6 +58,7 @@ def multiPDEs_overallsetup(
             n_phi_plot_count, n_phi_plot_begin_factor,
             factorization_type, factorization_rank,
             ft_implementation,
+            quantize_last_ndims=3,
             output_base_dir='results'):
 
     train_a_range = range(n_beg,n_beg+(T_in*1),1)
@@ -104,6 +105,7 @@ def multiPDEs_overallsetup(
                             if_3D,S_n_phi,
                             factorization_type, factorization_rank,
                             ft_implementation,
+                            quantize_last_ndims,
                             sum_vector_a_elements_i_iter, sum_vector_u_elements_i_iter,
                             strn_epochs_dump_path_file6,
                             strn_epochs_dump_path_file5,
@@ -135,6 +137,7 @@ def multiPDEs_overallsetup(
                             if_3D,S_n_phi,
                             factorization_type, factorization_rank,
                             ft_implementation,
+                            quantize_last_ndims,
                             sum_vector_a_elements_i_iter, sum_vector_u_elements_i_iter,
                             strn_epochs_dump_path_file6,
                             strn_epochs_dump_path_file5,

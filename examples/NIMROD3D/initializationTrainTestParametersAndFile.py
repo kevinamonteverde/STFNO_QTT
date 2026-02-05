@@ -49,6 +49,7 @@ def initializationTrainTestParametersFile(
         if_3D,S_n_phi,
     factorization_type, factorization_rank,
     ft_implementation,
+    quantize_last_ndims,
         sum_vector_a_elements_i_iter, sum_vector_u_elements_i_iter,
         strn_epochs_dump_path_file6,
         strn_epochs_dump_path_file5,
@@ -254,7 +255,8 @@ def initializationTrainTestParametersFile(
                                                 if_model_jit_torchCompile,
                                                 factorization=factorization,
                                                 rank=rank,
-                                                implementation=ft_implementation)
+                                                implementation=ft_implementation,
+                                                quantize_last_ndims=quantize_last_ndims)
                 # Print model summary
                 print("Model Summary:")
                 # The input size should be (batch_size, S_r, S_theta, S_n_phi, channels)
@@ -460,6 +462,7 @@ def initializationTrainTestParametersFile(
         if_3D,S_n_phi,
     factorization_type, factorization_rank,
     ft_implementation,
+    quantize_last_ndims,
         sum_vector_a_elements_i_iter, sum_vector_u_elements_i_iter,
         strn_epochs_dump_path_file6,
         strn_epochs_dump_path_file5,

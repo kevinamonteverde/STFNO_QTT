@@ -257,15 +257,32 @@ class QTTWeight(nn.Module):
         if not (init_std_val > 0) or not (init_std_val == init_std_val):
             init_std_val = 0.02
         init_std_val = min(init_std_val, 0.05)
-        try:
-            self.tt.uniform_(-init_std_val, init_std_val)
-        except Exception:
-            try:
-                self.tt.normal_(0.0, init_std_val)
-            except Exception:
-                pass
+        # Directly initialize each TT factor to avoid tltorch's normal_() overflow bug.
+        # When quantize_last_ndims=5 with rank>=8, np.prod(rank) overflows int64,
+        # causing division by zero and NaN in tltorch's initialization.
+        #
+        # The factors in ComplexTTTensor are stored as Parameters named factor_0, factor_1, etc.
+        # within a ComplexFactorList container. We need to access them directly via named_parameters.
+        #
+        # Scale the per-factor std so that the product of all factors has approximately
+        # the desired std. For order N cores, use std_per_core = std^(1/N).
+        tt_order = self.tt.order if hasattr(self.tt, 'order') else len(folded_shape)
+        if tt_order > 0:
+            std_per_core = init_std_val ** (1.0 / tt_order)
+        else:
+            std_per_core = init_std_val
 
-        # Sanitize factor cores: replace NaN/Inf with finite values
+        for name, param in self.tt.named_parameters():
+            if param.data is not None:
+                if param.data.is_complex():
+                    # For complex tensors, initialize real and imag parts separately
+                    real_part = torch.empty_like(param.data.real).uniform_(-std_per_core, std_per_core)
+                    imag_part = torch.empty_like(param.data.imag).uniform_(-std_per_core, std_per_core)
+                    param.data = torch.complex(real_part, imag_part)
+                else:
+                    param.data.uniform_(-std_per_core, std_per_core)
+
+        # Safety net: sanitize any remaining NaN/Inf values (should not be needed now)
         for attr in ("factors", "factors_list", "cores", "weights", "components"):
             fs = getattr(self.tt, attr, None)
             if fs is None:
@@ -273,11 +290,11 @@ class QTTWeight(nn.Module):
             if isinstance(fs, (list, tuple)):
                 for f in fs:
                     data = getattr(f, "data", None)
-                    if data is not None:
+                    if data is not None and (torch.isnan(data).any() or torch.isinf(data).any()):
                         f.data = torch.nan_to_num(f.data, nan=0.0, posinf=1e3, neginf=-1e3)
             else:
                 data = getattr(fs, "data", None)
-                if data is not None:
+                if data is not None and (torch.isnan(data).any() or torch.isinf(data).any()):
                     fs.data = torch.nan_to_num(fs.data, nan=0.0, posinf=1e3, neginf=-1e3)
         
         # Register hook to invalidate cache when parameters change during training

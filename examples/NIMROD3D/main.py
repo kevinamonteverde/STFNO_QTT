@@ -59,11 +59,11 @@ epsilon_inPlottingErrorNormalization = 1e-6
 # ==== COMMAND LINE ARGUMENT PARSING ====
 def parse_arguments():
     parser = argparse.ArgumentParser(description='STFNO Compression Study')
-    parser.add_argument('--factorization_type', type=str, default='dense', 
-                       choices=['dense', 'tucker', 'cp', 'tt', 'qtt'],
+    parser.add_argument('--factorization_type', type=str, default='dense',
+                       choices=['dense', 'tt', 'qtt'],
                        help="Type of tensor factorization (default: 'dense' = no factorization)")
-    parser.add_argument('--factorization_rank', type=float, default=0.5,
-                       help='Compression rank/ratio (default: 0.5)')
+    parser.add_argument('--factorization_rank', type=int, default=4,
+                       help='Compression rank (integer, default: 4)')
     parser.add_argument('--output_dir', type=str, default='results',
                        help='Output directory for results (default: results)')
     parser.add_argument('--epochs', type=int, default=500,
@@ -71,7 +71,9 @@ def parse_arguments():
     parser.add_argument('--ft_implementation', type=str, default='factorized',
                        choices=['factorized', 'reconstructed'],
                        help="Spectral conv implementation: 'factorized' enables operator paths; 'reconstructed' builds dense weights")
-    
+    parser.add_argument('--quantize_last_ndims', type=int, default=3,
+                       help='Number of trailing dimensions to quantize for QTT (default: 3 for spatial dims)')
+
     # Model architecture parameters
     parser.add_argument('--modes', type=int, default=6,
                        help='Number of Fourier modes (default: 6)')
@@ -94,6 +96,7 @@ output_base_dir = args.output_dir
 os.makedirs(output_base_dir, exist_ok=True)
 epochs_override = args.epochs
 ft_implementation = args.ft_implementation
+quantize_last_ndims = args.quantize_last_ndims
 
 modes = args.modes
 width = args.width
@@ -108,6 +111,7 @@ print(f"Factorization Rank: {factorization_rank}")
 print(f"Output Directory: {output_base_dir}")
 print(f"Training Epochs: {epochs_override}")
 print(f"Spectral Implementation: {ft_implementation}")
+print(f"Quantize Last N Dims (QTT): {quantize_last_ndims}")
 print(f"========================================")
 print("")
 
@@ -335,6 +339,7 @@ multiPDEs_overallsetup(
     n_phi_plot_count, n_phi_plot_begin_factor,
     factorization_type, factorization_rank,
     ft_implementation,
+    quantize_last_ndims=quantize_last_ndims,
     output_base_dir=output_base_dir
 )
 # exit()

@@ -71,6 +71,7 @@ def tt_contraction(weight_cores: Sequence[torch.Tensor], x: torch.Tensor) -> tor
     else:
         raise ValueError(f"Expected x to have 4 or 5 dims, got shape {tuple(x.shape)}")
 
+    print(equation)
     return oe.contract(equation, *cores, x, optimize="optimal", backend="torch")
 
 
