@@ -33,6 +33,7 @@ import torch.nn as nn
 from stfno.fourier_transform_3d_layer import SpectralConv3d
 from stfno.fourier_transform_3d_layer_jit_torchCompile import SpectralConv3d_jit_torchCompile
 from stfno.fourier_transform_3d_layer_factorized import FactorizedSpectralConv3d
+from stfno.dense_operator_3d import DenseOrQTT3DOperator
 from stfno.channelwise_conv_mlp import MLP, MLP_3D
 import numpy as np
 import torch.nn.functional as F
@@ -49,7 +50,10 @@ class FNO2d_NIMRODglobal_3D(nn.Module):
                                                 factorization='tt',
                                                 rank=4,
                                                 implementation='factorized',
-                                                quantize_last_ndims=3):
+                                                quantize_last_ndims=3,
+                                                operator_type='spectral',
+                                                dense_spatial_in=None,
+                                                dense_spatial_out=None):
         super(FNO2d_NIMRODglobal_3D, self).__init__()        
         # if total_vector_u_elements_i == 10:
         #     self.input_parameter_order = [[0,1,2,3,4,5,6,7,8,9],[3,4,5,0,1,2],[6,0,1,2,3,4,5,7,8,9],[7,8,9,0,1,2]]
@@ -86,8 +90,31 @@ class FNO2d_NIMRODglobal_3D(nn.Module):
         self.total_vector_u_elements_i= total_vector_u_elements_i
         self.n_layers = number_of_layers
         self.p_linears = nn.ModuleList([nn.Linear((self.T_in)+3, self.width) for i in range(self.total_vector_a_elements_i)])
+        self.operator_type = operator_type
         self.conv_linears = nn.ModuleList()
-        if if_model_jit_torchCompile:
+        if operator_type == 'dense':
+            # Dense 8-way operator (real-valued, no FFT)
+            if dense_spatial_in is None or dense_spatial_out is None:
+                raise ValueError(
+                    "dense_spatial_in and dense_spatial_out are required "
+                    "when operator_type='dense'"
+                )
+            for j in range(self.n_layers):
+                self.conv_linears.append(
+                    nn.ModuleList([
+                        DenseOrQTT3DOperator(
+                            self.width * self.mWidth_input_parameters[i],
+                            self.width * self.nWidth_output_parameters[i],
+                            spatial_in=dense_spatial_in,
+                            spatial_out=dense_spatial_out,
+                            factorization=factorization,
+                            rank=rank,
+                            quantize_last_ndims=quantize_last_ndims,
+                        )
+                        for i in range(len(self.mWidth_input_parameters))
+                    ])
+                )
+        elif if_model_jit_torchCompile:
             for j in range(self.n_layers):
                     self.conv_linears.append(  nn.ModuleList([SpectralConv3d_jit_torchCompile(self.width * self.mWidth_input_parameters[i], self.width * self.nWidth_output_parameters[i], self.modes1, self.modes2, self.modes3) for i in range(len(self.mWidth_input_parameters))])  )
         else:
