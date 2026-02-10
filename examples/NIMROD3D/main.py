@@ -73,6 +73,9 @@ def parse_arguments():
                        help="Spectral conv implementation: 'factorized' enables operator paths; 'reconstructed' builds dense weights")
     parser.add_argument('--quantize_last_ndims', type=int, default=3,
                        help='Number of trailing dimensions to quantize for QTT (default: 3 for spatial dims)')
+    parser.add_argument('--operator_type', type=str, default='spectral',
+                       choices=['spectral', 'dense'],
+                       help="Operator type: 'spectral' (FFT-based) or 'dense' (real-valued 8-way)")
 
     # Model architecture parameters
     parser.add_argument('--modes', type=int, default=6,
@@ -97,6 +100,7 @@ os.makedirs(output_base_dir, exist_ok=True)
 epochs_override = args.epochs
 ft_implementation = args.ft_implementation
 quantize_last_ndims = args.quantize_last_ndims
+operator_type = args.operator_type
 
 modes = args.modes
 width = args.width
@@ -112,6 +116,7 @@ print(f"Output Directory: {output_base_dir}")
 print(f"Training Epochs: {epochs_override}")
 print(f"Spectral Implementation: {ft_implementation}")
 print(f"Quantize Last N Dims (QTT): {quantize_last_ndims}")
+print(f"Operator Type: {operator_type}")
 print(f"========================================")
 print("")
 
@@ -340,6 +345,7 @@ multiPDEs_overallsetup(
     factorization_type, factorization_rank,
     ft_implementation,
     quantize_last_ndims=quantize_last_ndims,
+    operator_type=operator_type,
     output_base_dir=output_base_dir
 )
 # exit()

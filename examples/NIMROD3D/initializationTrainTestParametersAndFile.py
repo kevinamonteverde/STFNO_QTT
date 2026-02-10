@@ -29,27 +29,28 @@ except Exception:
     def summary(model, input_size=None):
         print("torchinfo not available; skipping detailed model summary (install torchinfo to enable).")
         return
-def initializationTrainTestParametersFile( 
+def initializationTrainTestParametersFile(
         sub_fieldlist_parm_eq_vector_train_global_lst_i_ii, j_fieldlist_parm_eq_vector_train_global_lst_i,
         data_read_global,
         train_a_range,train_u_range,test_a_range,test_u_range,
         ntrain,ntest,
         S,S_r,S_theta , T_in,T_out, T_in_steadystate,
-        if_IncludeSteadyState, 
+        if_IncludeSteadyState,
         n_beg, startofpatternlist_i_file_no_in_SelectData,
         if_model_Nimrod_STFNO_global,
-        if_model_jit_torchCompile, 
+        if_model_jit_torchCompile,
         i_fieldlist_parm_eq_vector_train_global_lst, fieldlist_parm_eq_vector_train_global_lst_i_j ,
         ii_sub_fieldlist_parm_eq_vector_train_global_lst_i,
         modes, width,
         batch_size,number_of_layers, learning_rate,iterations,
-        input_parameter_order, 
-        mWidth_input_parameters, 
+        input_parameter_order,
+        mWidth_input_parameters,
         nWidth_output_parameters,
         if_3D,S_n_phi,
     factorization_type, factorization_rank,
     ft_implementation,
     quantize_last_ndims,
+    operator_type,
         sum_vector_a_elements_i_iter, sum_vector_u_elements_i_iter,
         strn_epochs_dump_path_file6,
         strn_epochs_dump_path_file5,
@@ -249,14 +250,17 @@ def initializationTrainTestParametersFile(
                 model = FNO2d_NIMRODglobal_3D   (modes, modes,modes, width,(T_in),
                                                 sum_vector_a_elements_i_iter,T_out,
                                                 sum_vector_u_elements_i_iter,number_of_layers,
-                                                input_parameter_order, 
-                                                mWidth_input_parameters, 
+                                                input_parameter_order,
+                                                mWidth_input_parameters,
                                                 nWidth_output_parameters,
                                                 if_model_jit_torchCompile,
                                                 factorization=factorization,
                                                 rank=rank,
                                                 implementation=ft_implementation,
-                                                quantize_last_ndims=quantize_last_ndims)
+                                                quantize_last_ndims=quantize_last_ndims,
+                                                operator_type=operator_type,
+                                                dense_spatial_in=(S_r, S_theta, S_n_phi),
+                                                dense_spatial_out=(S_r, S_theta, S_n_phi))
                 # Print model summary
                 print("Model Summary:")
                 # The input size should be (batch_size, S_r, S_theta, S_n_phi, channels)
@@ -442,27 +446,28 @@ def initializationTrainTestParametersFile(
         print(f'Created the output dump files at {output_base_dir}/')
     else:
         print('Created the output dump files at ./data/')
-    return ( 
+    return (
         sub_fieldlist_parm_eq_vector_train_global_lst_i_ii, j_fieldlist_parm_eq_vector_train_global_lst_i,
         data_read_global,
         train_a_range,train_u_range,test_a_range,test_u_range,
         ntrain,ntest,
         S,S_r,S_theta , T_in,T_out, T_in_steadystate,
-        if_IncludeSteadyState, 
+        if_IncludeSteadyState,
         n_beg, startofpatternlist_i_file_no_in_SelectData,
         if_model_Nimrod_STFNO_global,
-        if_model_jit_torchCompile, 
+        if_model_jit_torchCompile,
         i_fieldlist_parm_eq_vector_train_global_lst, fieldlist_parm_eq_vector_train_global_lst_i_j ,
         ii_sub_fieldlist_parm_eq_vector_train_global_lst_i,
         modes, width,
         batch_size,number_of_layers, learning_rate,iterations,
-        input_parameter_order, 
-        mWidth_input_parameters, 
+        input_parameter_order,
+        mWidth_input_parameters,
         nWidth_output_parameters,
         if_3D,S_n_phi,
     factorization_type, factorization_rank,
     ft_implementation,
     quantize_last_ndims,
+    operator_type,
         sum_vector_a_elements_i_iter, sum_vector_u_elements_i_iter,
         strn_epochs_dump_path_file6,
         strn_epochs_dump_path_file5,
