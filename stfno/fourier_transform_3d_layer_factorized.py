@@ -159,8 +159,6 @@ def _contract_tt_factorized(x, tt_weight, separable=False):
         + "".join(out_syms)
     )
 
-    print(eq)
-
     return tl.einsum(eq, x, *tt_weight.factors)
 
 
@@ -284,79 +282,76 @@ def _contract_qtt_factorized(x, qtt_weight, separable=False):
     if not cores:
         raise ValueError("Cannot extract TT cores from qtt_weight")
 
-    # Build einsum equation
-    # The TT cores follow the weight's folded shape order: [Cin_bits, Cout_bits, spatial_bits]
-    # The input provides [Cin_bits, spatial_bits] (no Cout)
-    # The output should have [Cout_bits, spatial_bits]
+    # Build contraction using opt_einsum with integer subscripts.
+    # This avoids the 52-character symbol limit of torch.einsum,
+    # which is exceeded when quantize_last_ndims=5 with large channels.
+    import opt_einsum
 
-    # Start with symbols for the input (batch + folded dims)
-    x_order = len(x_folded.shape)  # includes batch
-    x_syms = list(einsum_symbols[:x_order])
-    batch_sym = x_syms[0]
+    next_id = 0
+    batch_id = next_id; next_id += 1
 
-    # Build weight symbols by going through the weight's folded shape
-    # This matches the TT core dimensions
-    weight_syms = []
-    x_sym_idx = 1  # Skip batch, start with first folded dim
-    out_syms = [batch_sym]  # Output starts with batch
-    next_new_sym = x_order  # Symbols after x_order are "new" (for output)
+    # Input subscripts: (batch, folded_cin..., folded_spatial...)
+    x_subs = [batch_id]
+    # Weight mode subscripts: one per TT core, matching the weight's folded order
+    weight_mode_ids = []
+    # Output subscripts: (batch, folded_cout..., folded_spatial...)
+    out_subs = [batch_id]
 
     # Go through each axis in the original weight shape
     for ax_idx in range(len(weight_shape)):
         if ax_idx in quantize_info:
-            # This axis is quantized into bits
             _, num_bits, _ = quantize_info[ax_idx]
 
             if ax_idx == 0:
-                # Cin bits - these come from input
+                # Cin bits - from input, contracted (not in output)
                 for _ in range(num_bits):
-                    weight_syms.append(x_syms[x_sym_idx])
-                    x_sym_idx += 1
+                    dim_id = next_id; next_id += 1
+                    x_subs.append(dim_id)
+                    weight_mode_ids.append(dim_id)
             elif ax_idx == 1:
-                # Cout bits - these are output (new symbols)
+                # Cout bits - new output dimensions
                 for _ in range(num_bits):
-                    weight_syms.append(einsum_symbols[next_new_sym])
-                    out_syms.append(einsum_symbols[next_new_sym])
-                    next_new_sym += 1
+                    dim_id = next_id; next_id += 1
+                    weight_mode_ids.append(dim_id)
+                    out_subs.append(dim_id)
             else:
-                # Spatial bits - these come from input and go to output
+                # Spatial bits - from input and in output
                 for _ in range(num_bits):
-                    weight_syms.append(x_syms[x_sym_idx])
-                    out_syms.append(x_syms[x_sym_idx])
-                    x_sym_idx += 1
+                    dim_id = next_id; next_id += 1
+                    x_subs.append(dim_id)
+                    weight_mode_ids.append(dim_id)
+                    out_subs.append(dim_id)
         else:
-            # This axis is not quantized
             if ax_idx == 0:
-                # Cin - comes from input
-                weight_syms.append(x_syms[x_sym_idx])
-                x_sym_idx += 1
+                # Cin unquantized - from input, contracted
+                dim_id = next_id; next_id += 1
+                x_subs.append(dim_id)
+                weight_mode_ids.append(dim_id)
             elif ax_idx == 1:
-                # Cout - is output (new symbol)
-                weight_syms.append(einsum_symbols[next_new_sym])
-                out_syms.append(einsum_symbols[next_new_sym])
-                next_new_sym += 1
+                # Cout unquantized - new output dimension
+                dim_id = next_id; next_id += 1
+                weight_mode_ids.append(dim_id)
+                out_subs.append(dim_id)
             else:
-                # Spatial - comes from input and goes to output
-                weight_syms.append(x_syms[x_sym_idx])
-                out_syms.append(x_syms[x_sym_idx])
-                x_sym_idx += 1
+                # Spatial unquantized - from input and in output
+                dim_id = next_id; next_id += 1
+                x_subs.append(dim_id)
+                weight_mode_ids.append(dim_id)
+                out_subs.append(dim_id)
 
-    # Build TT core symbols with ranks
-    rank_syms = list(einsum_symbols[next_new_sym:])
-    tt_syms = []
-    for i, s in enumerate(weight_syms):
-        tt_syms.append([rank_syms[i], s, rank_syms[i + 1]])
+    # Assign rank subscript IDs for TT cores
+    n_cores = len(weight_mode_ids)
+    rank_ids = [next_id + i for i in range(n_cores + 1)]
 
-    eq = (
-        "".join(x_syms)
-        + ","
-        + ",".join("".join(f) for f in tt_syms)
-        + "->"
-        + "".join(out_syms)
-    )
+    # Build interleaved args: (tensor, subs, tensor, subs, ..., output_subs)
+    args = [x_folded, x_subs]
+    for i in range(n_cores):
+        core_subs = [rank_ids[i], weight_mode_ids[i], rank_ids[i + 1]]
+        args.extend([cores[i], core_subs])
+    args.append(out_subs)
 
-    # Execute einsum contraction
-    result_folded = tl.einsum(eq, x_folded, *cores)
+    # Execute contraction
+    result_folded = opt_einsum.contract(*args, optimize='greedy')
 
     # Build unfolded shape for output
     orig_cout = weight_shape[1]
