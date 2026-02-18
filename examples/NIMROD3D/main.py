@@ -51,9 +51,7 @@ from readfiledata_h5py_i_file_no_in_SelectData import readfiledata_h5py_ifilenoi
 from multiPDEs_overall_setup import multiPDEs_overallsetup
 from NIMROD_pde_operator_parameters import NIMROD_pde_operator_parameters_defination
 
-manual_seed_value_set = 0
-torch.manual_seed(manual_seed_value_set)
-np.random.seed(manual_seed_value_set)
+# Seeds are set after CLI parsing (see below)
 epsilon_inPlottingErrorNormalization = 1e-6
 
 # ==== COMMAND LINE ARGUMENT PARSING ====
@@ -86,7 +84,9 @@ def parse_arguments():
                        help='Spatial resolution S (default: 32)')
     parser.add_argument('--batch_size', type=int, default=1,
                        help='Mini-batch size (default: 1)')
-    
+    parser.add_argument('--seed', type=int, default=0,
+                       help='Random seed for reproducibility (default: 0)')
+
     return parser.parse_args()
 
 # Parse command line arguments
@@ -107,6 +107,12 @@ width = args.width
 S = args.spatial_size
 batch_size = int(args.batch_size)
 
+# Apply seed from CLI
+manual_seed_value_set = args.seed
+torch.manual_seed(manual_seed_value_set)
+np.random.seed(manual_seed_value_set)
+random.seed(manual_seed_value_set)
+
 print(f"========================================")
 print(f"STFNO Compression Study Configuration")
 print(f"========================================")
@@ -117,6 +123,7 @@ print(f"Training Epochs: {epochs_override}")
 print(f"Spectral Implementation: {ft_implementation}")
 print(f"Quantize Last N Dims (QTT): {quantize_last_ndims}")
 print(f"Operator Type: {operator_type}")
+print(f"Random Seed: {manual_seed_value_set}")
 print(f"========================================")
 print("")
 
@@ -155,7 +162,7 @@ if_intermediate_parameter_update = False
 Option_NormalizingTrainTestData = 1 #2 or 1 or by default no normaliztion  True
 OneByPowerTransformationFactorOfData = 1.0
 if_model_Nimrod_STFNO_global = True
-random_seed_i_file_no_in_SelectData = 0
+random_seed_i_file_no_in_SelectData = manual_seed_value_set
 factor_ntrain_by_ntrainPlusntest = 0.50
 if if_HyperDiffusivity_case:
     ntrain = 66 # Reduced for testing (was 66)

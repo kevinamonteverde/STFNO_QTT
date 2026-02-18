@@ -197,6 +197,7 @@ def _contract_qtt_dense_operator(
         args.extend([cores[i], core_subs])
     args.append(out_subs)
 
+    #TODO: if less than 52 characters, use einsum instead of opt
     result_folded = opt_einsum.contract(*args, optimize='greedy')
 
     # --- Unfold output ---
