@@ -1439,6 +1439,266 @@ def figB_computational_cost(df):
     savefig(fig, "figB_computational_cost")
 
 
+# ─── QTT PADDING EFFECT FIGURES ──────────────────────────────────────────────
+
+def _qtt_padding_meta(modes_list, base=2):
+    """For each mode value compute QTT bits, padded size, and padding fraction."""
+    import math
+    rows = []
+    for m in modes_list:
+        bits = math.ceil(math.log(m, base)) if m > 1 else 0
+        q    = base**bits if bits > 0 else m
+        pad  = q - m
+        rows.append({"modes": m, "bits": bits, "padded_to": q,
+                     "pad_count": pad, "pad_frac": pad / q if q > 0 else 0.0})
+    return pd.DataFrame(rows)
+
+
+def _load_modes_all():
+    """Load test_l2 for TT/QTT3/QTT5 at r=12, w=32, all available modes."""
+    specs = {
+        "Spectral-TT":     f"{PSCRATCH}/spectral_tt_modes_sweep/spectral_tt_r12_m*_w32/metrics.csv",
+        "Spectral-QTT-q3": f"{PSCRATCH}/spectral_qtt_q3_sweep/spectral_qtt_q3_r12_m*_w32/metrics.csv",
+        "Spectral-QTT-q5": f"{PSCRATCH}/spectral_qtt_q5_sweep/spectral_qtt_q5_r12_m*_w32/metrics.csv",
+    }
+    data = {}
+    for label, pattern in specs.items():
+        rows = []
+        for f in sorted(glob.glob(pattern)):
+            try:
+                tmp = pd.read_csv(f)
+                if not tmp.empty:
+                    rows.append(tmp.iloc[-1].to_dict())
+            except Exception:
+                pass
+        if rows:
+            df = pd.DataFrame(rows)
+            _to_num(df, ["modes", "test_l2", "train_l2", "rank", "width"])
+            data[label] = df.sort_values("modes").reset_index(drop=True)
+    return data
+
+
+def _load_qtt3_training_curves():
+    """Parse epoch-by-epoch test_l2 from QTT3 training logs at r=12, w=32."""
+    curves = {}
+    pattern = f"{PSCRATCH}/spectral_qtt_q3_sweep/spectral_qtt_q3_r12_m*_w32/training.log"
+    for f in sorted(glob.glob(pattern)):
+        m_match = re.search(r"_m(\d+)_w32", f)
+        if not m_match:
+            continue
+        m = int(m_match.group(1))
+        eps, vals = [], []
+        try:
+            with open(f) as fh:
+                for line in fh:
+                    ep_m = re.search(r"^ep=\s*(\d+)", line)
+                    v_m  = re.search(r"test_l2_full / ntest=\s*([\d.e+\-]+)", line)
+                    if ep_m and v_m:
+                        eps.append(int(ep_m.group(1)))
+                        vals.append(float(v_m.group(1)))
+        except Exception:
+            pass
+        if eps:
+            curves[m] = pd.DataFrame({"epoch": eps, "test_l2": vals})
+    return curves
+
+
+def figP1_qtt_padding_modes(modes_data, meta_df):
+    """Modes sensitivity with QTT bit-depth background bands and padding labels."""
+    print("Fig P1: QTT padding — modes sensitivity with bit structure...")
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+
+    # Shaded background by bit-depth group
+    band_cfg = {
+        2: ("#e8eaf6", "2-bit QTT\n(to 4)"),
+        3: ("#e8f5e9", "3-bit QTT\n(to 8)"),
+        4: ("#fff3e0", "4-bit QTT\n(to 16)"),
+    }
+    for bits, (color, blabel) in band_cfg.items():
+        grp = meta_df[meta_df["bits"] == bits]
+        if grp.empty:
+            continue
+        xmin = grp["modes"].min() - 0.6
+        xmax = grp["modes"].max() + 0.6
+        ax.axvspan(xmin, xmax, alpha=0.5, color=color, zorder=0)
+        ax.text((xmin + xmax) / 2, 0.0205, blabel, ha="center", va="top",
+                fontsize=7.5, color="#555555", style="italic")
+
+    # Vertical dotted lines at power-of-2 (zero-padding cliffs)
+    for m_cliff in [4, 8, 16]:
+        if m_cliff in meta_df["modes"].values:
+            ax.axvline(m_cliff, color="#aaaaaa", linewidth=0.9,
+                       linestyle=":", zorder=1)
+
+    # Plot each method
+    line_styles = {"Spectral-TT": "-", "Spectral-QTT-q3": "--", "Spectral-QTT-q5": ":"}
+    for label in ["Spectral-TT", "Spectral-QTT-q3", "Spectral-QTT-q5"]:
+        if label not in modes_data:
+            continue
+        sub = modes_data[label]
+        c, mk, name = STYLE[label]
+        ls = line_styles[label]
+        ax.plot(sub["modes"], sub["test_l2"], color=c, marker=mk,
+                linewidth=2.2, markersize=7, linestyle=ls, label=name, zorder=5)
+
+    # Annotate padding fraction on QTT3 points only
+    if "Spectral-QTT-q3" in modes_data:
+        c3 = STYLE["Spectral-QTT-q3"][0]
+        for _, row in modes_data["Spectral-QTT-q3"].iterrows():
+            m = int(row["modes"])
+            mr = meta_df[meta_df["modes"] == m]
+            if mr.empty:
+                continue
+            pf = mr.iloc[0]["pad_frac"]
+            pad_c = mr.iloc[0]["pad_count"]
+            txt = f"0% pad\n(cliff)" if pad_c == 0 else f"{int(pf*100)}% pad"
+            y_off = -0.00055 if pad_c == 0 else 0.00045
+            ax.annotate(txt, xy=(m, row["test_l2"]),
+                        xytext=(m, row["test_l2"] + y_off),
+                        fontsize=6.8, ha="center",
+                        va="top" if pad_c == 0 else "bottom",
+                        color=c3, alpha=0.9)
+
+    _y = np.round(np.arange(0.008, 0.023, 0.001), 4)
+    ax.yaxis.set_major_locator(mticker.FixedLocator(_y))
+    ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3f"))
+    ax.yaxis.set_minor_locator(mticker.NullLocator())
+    ax.xaxis.set_major_locator(mticker.FixedLocator(sorted(meta_df["modes"].unique())))
+    ax.set_xlabel("Fourier Modes")
+    ax.set_ylabel("Test L² Error")
+    ax.set_title("Modes Sensitivity: QTT Bit-Depth Structure & Zero-Padding Effect\n"
+                 "(r=12, w=32 — dotted verticals = power-of-2 cliffs, QTT3 annotated)")
+    ax.legend(framealpha=0.9, fontsize=9, loc="upper right")
+    fig.tight_layout()
+    savefig(fig, "figP1_qtt_padding_modes")
+
+
+def figP2_qtt_padding_cliff(modes_data, meta_df):
+    """4-bit group: show smooth m=10→14 trend and m=16 anomaly; compare 3-bit group."""
+    print("Fig P2: QTT padding — cliff anomaly in 4-bit group...")
+    if "Spectral-QTT-q3" not in modes_data:
+        print("  No QTT3 data, skipping.")
+        return
+
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.8))
+    c3, mk3, _ = STYLE["Spectral-QTT-q3"]
+    c5, mk5, _ = STYLE["Spectral-QTT-q5"]
+
+    for ax, bits_val, title_sfx in zip(axes, [4, 3],
+                                        ["4-bit group (modes 9–16, padded to 16)",
+                                         "3-bit group (modes 5–8, padded to 8)"]):
+        grp_meta = meta_df[meta_df["bits"] == bits_val].sort_values("modes")
+        modes_in_grp = grp_meta["modes"].tolist()
+
+        for label, color, mk in [("Spectral-QTT-q3", c3, mk3),
+                                   ("Spectral-QTT-q5", c5, mk5)]:
+            if label not in modes_data:
+                continue
+            sub = modes_data[label]
+            sub_grp = sub[sub["modes"].isin(modes_in_grp)].sort_values("modes")
+            if sub_grp.empty:
+                continue
+            name = STYLE[label][2]
+            ax.plot(sub_grp["modes"], sub_grp["test_l2"],
+                    color=color, marker=mk, linewidth=2, markersize=8,
+                    label=name, zorder=5)
+
+            # For 4-bit group: fit linear trend on m=10,12,14 and project to 16
+            if bits_val == 4 and label == "Spectral-QTT-q3":
+                trend_pts = sub_grp[sub_grp["modes"] < 16]
+                if len(trend_pts) >= 2:
+                    coeffs = np.polyfit(trend_pts["modes"], trend_pts["test_l2"], 1)
+                    x_proj = np.array([trend_pts["modes"].max(), 16])
+                    y_proj = np.polyval(coeffs, x_proj)
+                    ax.plot(x_proj, y_proj, color=color, linestyle="--",
+                            linewidth=1.4, alpha=0.55, zorder=3,
+                            label="QTT3 linear trend (m≤14)")
+                    # Annotate the gap at m=16
+                    actual_16 = sub_grp[sub_grp["modes"] == 16]
+                    if not actual_16.empty:
+                        y_actual = actual_16.iloc[0]["test_l2"]
+                        y_expected = np.polyval(coeffs, 16)
+                        ax.annotate("",
+                            xy=(16, y_actual),
+                            xytext=(16, y_expected),
+                            arrowprops=dict(arrowstyle="<->", color="#c0392b", lw=1.5))
+                        ax.text(16.15, (y_actual + y_expected) / 2,
+                                f"Δ={y_actual - y_expected:+.4f}\n(zero-pad cliff)",
+                                fontsize=7.5, color="#c0392b", va="center")
+
+        # Annotate padding fraction on x-ticks
+        ax.set_xticks(modes_in_grp)
+        pad_labels = []
+        for m in modes_in_grp:
+            mr = meta_df[meta_df["modes"] == m]
+            pf = int(mr.iloc[0]["pad_frac"] * 100) if not mr.empty else 0
+            pad_labels.append(f"m={m}\n({pf}% pad)")
+        ax.set_xticklabels(pad_labels, fontsize=8)
+        ax.set_xlabel("Modes (with QTT padding fraction)")
+        ax.set_ylabel("Test L² Error")
+        ax.set_title(f"QTT Padding Effect — {title_sfx}")
+        _y = np.round(np.arange(0.009, 0.021, 0.001), 4)
+        ax.yaxis.set_major_locator(mticker.FixedLocator(_y))
+        ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3f"))
+        ax.yaxis.set_minor_locator(mticker.NullLocator())
+        ax.legend(fontsize=8.5, framealpha=0.9)
+
+    fig.suptitle("Zero-Padding Cliff: Within Each QTT Bit-Depth Group\n"
+                 "(QTT3/QTT5 r=12, w=32; dashed = projected trend without cliff)",
+                 fontsize=12)
+    fig.tight_layout()
+    savefig(fig, "figP2_qtt_padding_cliff")
+
+
+def figP3_qtt3_training_curves(curves, meta_df):
+    """Full training trajectories for all QTT3 modes — plateau at m=16 visible."""
+    print("Fig P3: QTT3 training curves — all modes...")
+    if not curves:
+        print("  No training curve data found.")
+        return
+
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+    no_pad = {4, 8, 16}
+    cmap = plt.cm.plasma
+    modes_sorted = sorted(curves.keys())
+    n = len(modes_sorted)
+
+    for i, m in enumerate(modes_sorted):
+        curve = curves[m].sort_values("epoch")
+        color = cmap(i / max(n - 1, 1))
+        is_cliff = m in no_pad
+        ls = "--" if is_cliff else "-"
+        lw = 2.6 if is_cliff else 1.7
+        label = f"m={m} — 0% pad (cliff)" if is_cliff else f"m={m}"
+        ax.plot(curve["epoch"], curve["test_l2"],
+                color=color, linewidth=lw, linestyle=ls, label=label,
+                alpha=0.95 if is_cliff else 0.75,
+                zorder=5 if is_cliff else 3)
+
+    # Annotate plateau for m=16
+    if 16 in curves:
+        c16 = curves[16]
+        ep100 = c16[c16["epoch"] == 100]
+        if not ep100.empty:
+            ax.annotate("m=16 plateau\n(no padding)", fontsize=8, color="#c0392b",
+                        xy=(100, ep100.iloc[0]["test_l2"]),
+                        xytext=(140, ep100.iloc[0]["test_l2"] + 0.005),
+                        arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.3))
+
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Test L² Error")
+    ax.set_title("QTT3 Training Curves — All Modes (r=12, w=32)\n"
+                 "Dashed = power-of-2 modes (zero padding); note m=16 stalls early")
+    _y = np.round(np.arange(0.009, 0.058, 0.004), 4)
+    ax.yaxis.set_major_locator(mticker.FixedLocator(_y))
+    ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3f"))
+    ax.yaxis.set_minor_locator(mticker.NullLocator())
+    ax.set_xlim(0, 400)
+    ax.legend(fontsize=8, framealpha=0.9, ncol=2)
+    fig.tight_layout()
+    savefig(fig, "figP3_qtt3_training_curves")
+
+
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -1467,6 +1727,14 @@ def main():
     figD_spectral_tt_heatmap(df)
     figE_spectral_heatmaps_comparison(df)
     figF_spectral_pareto(df)
+
+    # QTT padding effect analysis
+    _modes_data = _load_modes_all()
+    _meta_df    = _qtt_padding_meta([4, 6, 8, 10, 12, 14, 16])
+    _curves     = _load_qtt3_training_curves()
+    figP1_qtt_padding_modes(_modes_data, _meta_df)
+    figP2_qtt_padding_cliff(_modes_data, _meta_df)
+    figP3_qtt3_training_curves(_curves, _meta_df)
 
     # Save unified data for reference
     df.to_csv(os.path.join(OUT_DIR, "unified_results.csv"), index=False)
