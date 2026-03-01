@@ -7,6 +7,17 @@ env/
 /Data_Logs_Tests
 /STFNO_QTT_backup
 
+# Track specific scripts inside Data_Logs_Tests (data/outputs still excluded)
+!Data_Logs_Tests/
+!Data_Logs_Tests/conference_plots/
+!Data_Logs_Tests/conference_plots/analyze_conference.py
+!Data_Logs_Tests/gap_fill_sweep/
+!Data_Logs_Tests/gap_fill_sweep/run_gap_fill.sbatch
+!Data_Logs_Tests/dense_qtt_extended_sweep/
+!Data_Logs_Tests/dense_qtt_extended_sweep/run_dense_qtt_extended.sbatch
+!Data_Logs_Tests/modes_sweep/
+!Data_Logs_Tests/modes_sweep/run_modes_sweep.sbatch
+
 # Byte-compiled / cache
 __pycache__/
 *.py[cod]
