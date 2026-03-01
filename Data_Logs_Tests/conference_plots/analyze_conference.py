@@ -877,7 +877,8 @@ def fig09_width_scaling(df):
     ax_loss.set_ylabel("Test L² Error")
     ax_loss.set_title("Best Accuracy vs. Width\n(optimized over rank)")
     ax_loss.set_yscale("log")
-    ax_loss.yaxis.set_major_locator(mticker.LogLocator(base=10, subs=[1, 2, 3, 4, 5, 6, 7, 8, 9]))
+    _y09 = np.round(np.arange(0.008, 0.026, 0.001), 4)
+    ax_loss.yaxis.set_major_locator(mticker.FixedLocator(_y09))
     ax_loss.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3f"))
     ax_loss.yaxis.set_minor_locator(mticker.NullLocator())
     ax_loss.legend(framealpha=0.9, fontsize=8, handlelength=1.0,
