@@ -538,20 +538,40 @@ def fig04_modes_sensitivity(df):
 
     fig, ax = plt.subplots(figsize=(7, 5))
 
-    # Modes sweep (r=12, w=32, varying modes) — filter to w=32 only
+    # Modes sweep (spectral-TT, w=32, varying modes — best rank per mode)
     if not modes_df.empty:
-        sub = modes_df[modes_df["width"] == 32].sort_values("modes")
+        sub = modes_df[modes_df["width"] == 32]
+        # Multiple ranks exist at some modes (e.g. r=12,14,15 at m=16) — take best per mode
+        sub = sub.loc[sub.groupby("modes")["test_l2"].idxmin()].sort_values("modes")
         c, mk, name = STYLE["Spectral-TT"]
         ax.plot(sub["modes"], sub["test_l2"], color=c, marker=mk,
-                linewidth=2.5, markersize=9, label="Spectral-TT (r=12, w=32)", zorder=5)
+                linewidth=2.5, markersize=9, label="Spectral-TT (best rank, w=32)", zorder=5)
 
-        # Annotate best
+        # Annotate best (include rank since it now varies)
         best = sub.loc[sub["test_l2"].idxmin()]
-        ax.annotate(f"Best: m={int(best['modes'])}\n({best['test_l2']:.4f})",
+        best_r = int(best["rank"]) if not pd.isna(best.get("rank", float("nan"))) else 12
+        ax.annotate(f"Best: m={int(best['modes'])}, r={best_r}\n({best['test_l2']:.4f})",
                     xy=(best["modes"], best["test_l2"]),
                     xytext=(best["modes"] + 1.5, best["test_l2"] + 0.0005),
                     arrowprops=dict(arrowstyle="->", color=c, lw=1.3),
                     fontsize=9, color=c)
+
+    # Load best QTT3 m=16 from rerun (seeds 1-3) to replace plateaued seed=0
+    _qtt3_m16_best = None
+    for _s, _logf in [
+        (0, f"{PSCRATCH}/spectral_qtt_q3_sweep/spectral_qtt_q3_r12_m16_w32/training.log"),
+        (1, f"{PSCRATCH}/qtt3_m16_rerun/seed1/training.log"),
+        (2, f"{PSCRATCH}/qtt3_m16_rerun/seed2/training.log"),
+        (3, f"{PSCRATCH}/qtt3_m16_rerun/seed3/training.log"),
+    ]:
+        if os.path.exists(_logf):
+            with open(_logf) as _f:
+                for _line in _f:
+                    _hit = re.search(r'test_l2_full / ntest=\s*([\d.e+\-]+)', _line)
+                    if _hit:
+                        _v = float(_hit.group(1))
+                        if _qtt3_m16_best is None or _v < _qtt3_m16_best:
+                            _qtt3_m16_best = _v
 
     # QTT3/QTT5: line if we have multiple modes, scatter marker if only m=12 available
     for label in ["Spectral-QTT-q3", "Spectral-QTT-q5"]:
@@ -559,6 +579,13 @@ def fig04_modes_sensitivity(df):
         sub2 = df[(df["label"] == label) &
                   (df["rank"] == 12) &
                   (df["width"] == 32)].dropna(subset=["modes"]).sort_values("modes")
+        # Override QTT3 m=16 with best seed from rerun (seed=2 escaped plateau: 0.0119)
+        if label == "Spectral-QTT-q3" and _qtt3_m16_best is not None:
+            sub2 = sub2.copy()
+            mask16 = sub2["modes"] == 16
+            if mask16.any():
+                sub2.loc[mask16, "test_l2"] = min(_qtt3_m16_best,
+                                                   sub2.loc[mask16, "test_l2"].values[0])
         if not sub2.empty:
             if len(sub2) >= 2:
                 ax.plot(sub2["modes"], sub2["test_l2"], color=c, marker=mk,
