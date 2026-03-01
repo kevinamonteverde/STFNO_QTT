@@ -807,7 +807,10 @@ def fig08_rank_scaling(df):
     fig, axes = plt.subplots(1, 2, figsize=(13, 5))
 
     for ax, label in zip(axes, ["Spectral-TT", "Dense-QTT"]):
+        # Fix to m=12 — modes sweep data (now in df) would create multiple
+        # points at r=12 otherwise. Dense-QTT has no modes column (NaN → keep all).
         sub = df[df["label"] == label]
+        sub = sub[sub["modes"].isna() | (sub["modes"] == 12)]
         c_base, mk, name = STYLE[label]
         blues = plt.cm.Blues(np.linspace(0.4, 1.0, len(widths_to_show)))
         oranges = plt.cm.Oranges(np.linspace(0.4, 1.0, len(widths_to_show)))
