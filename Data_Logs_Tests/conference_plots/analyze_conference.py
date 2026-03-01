@@ -683,7 +683,12 @@ def fig06_compression(df):
         sub = df[df["label"] == label].copy()
         if sub.empty:
             continue
-        sub = sub.copy()
+        # Keep only even ranks (original systematic grid; odd ranks from gap-fill are less systematic)
+        sub = sub[sub["rank"].isna() | (sub["rank"] % 2 == 0)]
+        # Omit rank > width: bond dim exceeding channel dim is redundant parameterization
+        sub = sub[sub["rank"].isna() | (sub["rank"] <= sub["width"])]
+        if sub.empty:
+            continue
         sub["compression"] = UNFACT_MEDIAN_PARAMS / sub["param_count"]
         sub["rel_error"]   = sub["test_l2"] / UNFACT_BEST_L2
         c, mk, name = STYLE[label]
