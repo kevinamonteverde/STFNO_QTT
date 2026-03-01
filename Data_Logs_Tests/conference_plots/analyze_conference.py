@@ -324,7 +324,7 @@ def fig01_unified_pareto(df):
         if sub.empty:
             continue
         c, mk, name = STYLE[label]
-        alpha = 0.45 if label == "Unfactorized" else 0.55
+        alpha = 0.25 if label == "Unfactorized" else 0.33
         ax.scatter(sub["param_count"], sub["test_l2"],
                    color=c, marker=mk, s=50, alpha=alpha, linewidths=0.5,
                    edgecolors="white", zorder=3)
@@ -1239,7 +1239,7 @@ def figF_spectral_pareto(df):
         if sub.empty:
             continue
         c, mk, name = STYLE[label]
-        alpha = 0.35 if label == "Unfactorized" else 0.50
+        alpha = 0.20 if label == "Unfactorized" else 0.30
         ax.scatter(sub["param_count"], sub["test_l2"],
                    color=c, marker=mk, s=55, alpha=alpha,
                    edgecolors="white", linewidths=0.5, zorder=3)
