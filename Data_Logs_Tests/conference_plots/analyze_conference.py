@@ -528,9 +528,9 @@ def fig04_modes_sensitivity(df):
 
     fig, ax = plt.subplots(figsize=(7, 5))
 
-    # Modes sweep (r=12, w=32, varying modes)
+    # Modes sweep (r=12, w=32, varying modes) — filter to w=32 only
     if not modes_df.empty:
-        sub = modes_df.sort_values("modes")
+        sub = modes_df[modes_df["width"] == 32].sort_values("modes")
         c, mk, name = STYLE["Spectral-TT"]
         ax.plot(sub["modes"], sub["test_l2"], color=c, marker=mk,
                 linewidth=2.5, markersize=9, label="Spectral-TT (r=12, w=32)", zorder=5)
@@ -1223,8 +1223,8 @@ def figF_spectral_pareto(df):
     # Annotate the three method endpoints
     for label, offset_x, offset_y in [
         ("Spectral-TT",     3.0,  1.6),
-        ("Spectral-QTT-q3", 2.5,  1.05),
-        ("Spectral-QTT-q5", 3.0,  1.5),
+        ("Spectral-QTT-q3", 2.5,  0.3),
+        ("Spectral-QTT-q5", 3.0,  2.5),
     ]:
         sub = df[df["label"] == label]
         if sub.empty:
