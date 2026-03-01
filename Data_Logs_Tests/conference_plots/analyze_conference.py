@@ -307,7 +307,7 @@ def fig01_unified_pareto(df):
     print("Fig 01: Unified Pareto...")
     fig, ax = plt.subplots(figsize=(9, 6))
 
-    UNFACT_BEST = 0.01363  # best unfactorized test_l2
+    UNFACT_BEST = df[df["label"] == "Unfactorized"]["test_l2"].min()
 
     for label in ORDER:
         sub = df[df["label"] == label]
@@ -351,7 +351,9 @@ def fig01_unified_pareto(df):
 
     # Annotate best Spectral-TT
     best_tt = df[df["label"] == "Spectral-TT"].sort_values("test_l2").iloc[0]
-    ax.annotate(f"Best TT\n({best_tt['test_l2']:.4f}, {int(best_tt['param_count']/1e3)}K params)",
+    _tt_p = best_tt['param_count']
+    _tt_p_str = f"{_tt_p/1e6:.3f}M" if _tt_p >= 1e6 else f"{int(_tt_p/1e3)}K"
+    ax.annotate(f"Best TT\n({best_tt['test_l2']:.4f}, {_tt_p_str} params)",
                 xy=(best_tt["param_count"], best_tt["test_l2"]),
                 xytext=(best_tt["param_count"] * 3, best_tt["test_l2"] * 1.5 - 0.003),
                 arrowprops=dict(arrowstyle="->", color="black", lw=1.5),
@@ -1228,7 +1230,9 @@ def figF_spectral_pareto(df):
             continue
         best = sub.loc[sub["test_l2"].idxmin()]
         c = STYLE[label][0]
-        ax.annotate(f"{STYLE[label][2]}\n{best['test_l2']:.4f}, {int(best['param_count']/1e3)}K",
+        _bp = best['param_count']
+        _bp_str = f"{_bp/1e6:.3f}M" if _bp >= 1e6 else f"{int(_bp/1e3)}K"
+        ax.annotate(f"{STYLE[label][2]}\n{best['test_l2']:.4f}, {_bp_str}",
                     xy=(best["param_count"], best["test_l2"]),
                     xytext=(best["param_count"] * offset_x,
                             best["test_l2"] + offset_y * 0.001),
