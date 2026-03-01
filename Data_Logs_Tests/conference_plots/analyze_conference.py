@@ -324,7 +324,7 @@ def fig01_unified_pareto(df):
         if sub.empty:
             continue
         c, mk, name = STYLE[label]
-        alpha = 0.25 if label == "Unfactorized" else 0.33
+        alpha = 0.25 if label == "Unfactorized" else 0.20
         ax.scatter(sub["param_count"], sub["test_l2"],
                    color=c, marker=mk, s=50, alpha=alpha, linewidths=0.5,
                    edgecolors="white", zorder=3)
@@ -681,12 +681,6 @@ def fig06_compression(df):
         if label == "Unfactorized":
             continue
         sub = df[df["label"] == label].copy()
-        if sub.empty:
-            continue
-        # Keep only even ranks (original systematic grid; odd ranks from gap-fill are less systematic)
-        sub = sub[sub["rank"].isna() | (sub["rank"] % 2 == 0)]
-        # Omit rank > width: bond dim exceeding channel dim is redundant parameterization
-        sub = sub[sub["rank"].isna() | (sub["rank"] <= sub["width"])]
         if sub.empty:
             continue
         sub["compression"] = UNFACT_MEDIAN_PARAMS / sub["param_count"]
@@ -1187,6 +1181,11 @@ def figC_dense_qtt_heatmap(df):
         print("  WARNING: no Dense-QTT data")
         return
 
+    # Even ranks only (original step-2 grid; odd ranks from gap-fill are less systematic)
+    sub = sub[sub["rank"] % 2 == 0]
+    # Omit rank > width: bond dim exceeding channel dim is redundant parameterization
+    sub = sub[sub["rank"] <= sub["width"]]
+
     pivot = sub.groupby(["rank", "width"])["test_l2"].min().unstack("width")
     pivot = pivot.sort_index(ascending=False)
 
@@ -1239,7 +1238,7 @@ def figF_spectral_pareto(df):
         if sub.empty:
             continue
         c, mk, name = STYLE[label]
-        alpha = 0.20 if label == "Unfactorized" else 0.30
+        alpha = 0.20 if label == "Unfactorized" else 0.20
         ax.scatter(sub["param_count"], sub["test_l2"],
                    color=c, marker=mk, s=55, alpha=alpha,
                    edgecolors="white", linewidths=0.5, zorder=3)
