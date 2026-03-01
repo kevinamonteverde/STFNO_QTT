@@ -230,14 +230,15 @@ def load_all():
 
     # New sweeps — authoritative for TT and QTT
     for sweep, label in [
-        ("spectral_tt_sweep",     "Spectral-TT"),
-        ("spectral_qtt_q3_sweep", "Spectral-QTT-q3"),
-        ("spectral_qtt_q5_sweep", "Spectral-QTT-q5"),
-        ("real_operator_sweep",   "Dense-QTT"),
+        ("spectral_tt_sweep",       "Spectral-TT"),
+        ("spectral_tt_modes_sweep", "Spectral-TT"),   # modes ablation — was missing!
+        ("spectral_qtt_q3_sweep",   "Spectral-QTT-q3"),
+        ("spectral_qtt_q5_sweep",   "Spectral-QTT-q5"),
+        ("real_operator_sweep",     "Dense-QTT"),
     ]:
         df = load_new_sweep(sweep, label)
         if not df.empty:
-            print(f"  {label}: {len(df)} configs")
+            print(f"  {label} ({sweep}): {len(df)} configs")
             frames.append(df)
 
     combined = pd.concat(frames, ignore_index=True, sort=False)
@@ -246,7 +247,16 @@ def load_all():
     # Remove obviously failed runs (test_l2 > 0.15 indicates non-convergence)
     before = len(combined)
     combined = combined[combined["test_l2"] < 0.15].dropna(subset=["test_l2","param_count"])
-    print(f"  Total: {len(combined)} valid configs ({before - len(combined)} filtered)")
+
+    # Deduplicate: keep best test_l2 per (label, rank, modes, width) —
+    # spectral_tt_r12_m12_w32 exists in both spectral_tt_sweep and spectral_tt_modes_sweep
+    before_dedup = len(combined)
+    combined = (combined
+                .sort_values("test_l2")
+                .drop_duplicates(subset=["label", "rank", "modes", "width"], keep="first")
+                .reset_index(drop=True))
+    print(f"  Total: {len(combined)} valid configs "
+          f"({before - before_dedup} filtered, {before_dedup - len(combined)} deduped)")
     return combined
 
 
