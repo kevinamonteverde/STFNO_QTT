@@ -1185,6 +1185,8 @@ def figC_dense_qtt_heatmap(df):
     sub = sub[sub["rank"] % 2 == 0]
     # Omit rank > width: bond dim exceeding channel dim is redundant parameterization
     sub = sub[sub["rank"] <= sub["width"]]
+    # Cap width at 40: all widths ≤40 have full rank coverage; beyond that jobs are sparse
+    sub = sub[sub["width"] <= 40]
 
     pivot = sub.groupby(["rank", "width"])["test_l2"].min().unstack("width")
     pivot = pivot.sort_index(ascending=False)
@@ -1192,15 +1194,15 @@ def figC_dense_qtt_heatmap(df):
     cmap = plt.cm.RdYlGn_r.copy()
     cmap.set_bad("lightgray")
 
-    nw = len(pivot.columns)
-    fig_w = max(11, nw * 0.9)
-    fig, ax = plt.subplots(figsize=(fig_w, 7))
+    nr, nw = pivot.shape
+    cell = 0.7   # inches per cell
+    fig, ax = plt.subplots(figsize=(max(10, nw * cell + 2), max(5, nr * cell + 1.5)))
     im = ax.imshow(np.ma.masked_invalid(pivot.values),
                    aspect="auto", cmap=cmap, vmin=0.016, vmax=0.030)
 
     ax.set_xticks(range(len(pivot.columns)))
     ax.set_xticklabels([str(int(c)) for c in pivot.columns], fontsize=11,
-                       rotation=45 if len(pivot.columns) > 8 else 0, ha="right")
+                       rotation=0, ha="center")
     ax.set_yticks(range(len(pivot.index)))
     ax.set_yticklabels([str(int(r)) for r in pivot.index], fontsize=12)
     ax.set_xlabel("Width", fontsize=13)
