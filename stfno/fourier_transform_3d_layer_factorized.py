@@ -18,6 +18,7 @@ import torch
 import torch.nn as nn
 import tensorly as tl
 from tensorly.plugins import use_opt_einsum
+import opt_einsum
 from tltorch.factorized_tensors.core import FactorizedTensor
 from torch.cuda import Event
 import time
@@ -285,7 +286,6 @@ def _contract_qtt_factorized(x, qtt_weight, separable=False):
     # Build contraction using opt_einsum with integer subscripts.
     # This avoids the 52-character symbol limit of torch.einsum,
     # which is exceeded when quantize_last_ndims=5 with large channels.
-    import opt_einsum
 
     next_id = 0
     batch_id = next_id; next_id += 1
@@ -338,6 +338,21 @@ def _contract_qtt_factorized(x, qtt_weight, separable=False):
                 x_subs.append(dim_id)
                 weight_mode_ids.append(dim_id)
                 out_subs.append(dim_id)
+
+    # Apply bit ordering permutation: remap TT cores so each handles the serial bit
+    # indicated by _bit_perm (perm[k]=j → TT core k contracts with serial bit j).
+    # x_subs/out_subs stay in serial order; only weight_mode_ids is permuted.
+    _bit_perm = getattr(qtt_weight, '_bit_perm', None)
+    if _bit_perm and getattr(qtt_weight, 'bit_ordering', 'serial') != 'serial':
+        _n_non_q = len(weight_shape) - len(meta.quantize_axes)
+        _total_bits = len(_bit_perm)
+        if _total_bits > 0 and len(weight_mode_ids) == _n_non_q + _total_bits:
+            _serial_ids = list(weight_mode_ids[_n_non_q:_n_non_q + _total_bits])
+            weight_mode_ids = (
+                list(weight_mode_ids[:_n_non_q])
+                + [_serial_ids[_bit_perm[p]] for p in range(_total_bits)]
+                + list(weight_mode_ids[_n_non_q + _total_bits:])
+            )
 
     # Assign rank subscript IDs for TT cores
     n_cores = len(weight_mode_ids)
@@ -411,7 +426,7 @@ class FactorizedSpectralConv3d(nn.Module):
     def __init__(self, in_channels, out_channels, modes1, modes2, modes3,
                  factorization='tucker', rank=4, implementation='reconstructed',
                  separable=False, fft_norm='forward', init_std='auto', timing: bool = True,
-                 quantize_last_ndims: int = 3):
+                 quantize_last_ndims: int = 3, bit_ordering: str = 'serial'):
         super(FactorizedSpectralConv3d, self).__init__()
         
         # Timing controls
@@ -425,6 +440,7 @@ class FactorizedSpectralConv3d(nn.Module):
             'qtt_ms': 0.0,
         }
         self.quantize_last_ndims = quantize_last_ndims
+        self.bit_ordering = bit_ordering
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.modes1 = modes1
@@ -511,6 +527,7 @@ class FactorizedSpectralConv3d(nn.Module):
                     base=2,
                     dtype=torch.cfloat,
                     tt_order='in-out-bits',  # default ordering for spectral convolution
+                    bit_ordering=self.bit_ordering,
                 )
                 setattr(w, "_stfno_weight_index", i)
 

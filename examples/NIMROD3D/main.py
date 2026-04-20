@@ -72,8 +72,19 @@ def parse_arguments():
     parser.add_argument('--quantize_last_ndims', type=int, default=3,
                        help='Number of trailing dimensions to quantize for QTT (default: 3 for spatial dims)')
     parser.add_argument('--operator_type', type=str, default='spectral',
-                       choices=['spectral', 'dense'],
-                       help="Operator type: 'spectral' (FFT-based) or 'dense' (real-valued 8-way)")
+                       choices=['spectral', 'dense', 'real_op'],
+                       help="Operator type: 'spectral' (FFT-based) or 'real_op'/'dense' (real-valued 8-way, no FFT)")
+    parser.add_argument('--bit_ordering', type=str, default='serial',
+                       choices=['serial', 'interleaved', 'bitrev_interleaved', 'paired_spatial', 'paired_all',
+                                'ch_serial', 'ch_io_block', 'ch_paired_spatial', 'ch_paired_all',
+                                'input_interleaved'],
+                       help="QTT bit ordering: 'serial' (default), 'interleaved', 'bitrev_interleaved', "
+                            "'paired_spatial' (xi0,Xo0,xi1,Xo1,...per dim), "
+                            "'paired_all' (xi0,Xo0,yi0,Yo0,zi0,Zo0,... at each level), "
+                            "'ch_serial' (Cin,Cout,xi,yi,zi,Xo,Yo,Zo), "
+                            "'ch_io_block' (Cin,Cout,xi,Xo,yi,Yo,zi,Zo), "
+                            "'ch_paired_spatial' (Cin,Cout,xi0,Xo0,...,yi0,Yo0,...), "
+                            "'ch_paired_all' (Cin,Cout,xi0,Xo0,yi0,Yo0,zi0,Zo0,...)")
 
     # Model architecture parameters
     parser.add_argument('--modes', type=int, default=6,
@@ -101,6 +112,7 @@ epochs_override = args.epochs
 ft_implementation = args.ft_implementation
 quantize_last_ndims = args.quantize_last_ndims
 operator_type = args.operator_type
+bit_ordering = args.bit_ordering
 
 modes = args.modes
 width = args.width
@@ -123,6 +135,7 @@ print(f"Training Epochs: {epochs_override}")
 print(f"Spectral Implementation: {ft_implementation}")
 print(f"Quantize Last N Dims (QTT): {quantize_last_ndims}")
 print(f"Operator Type: {operator_type}")
+print(f"Bit Ordering: {bit_ordering}")
 print(f"Random Seed: {manual_seed_value_set}")
 print(f"========================================")
 print("")
@@ -353,6 +366,7 @@ multiPDEs_overallsetup(
     ft_implementation,
     quantize_last_ndims=quantize_last_ndims,
     operator_type=operator_type,
+    bit_ordering=bit_ordering,
     output_base_dir=output_base_dir
 )
 # exit()

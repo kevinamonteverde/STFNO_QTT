@@ -61,7 +61,8 @@ def initializationTrainTestParametersFile(
         train_loader ,test_loader,
         model,optimizer,scheduler,
         count_params_model,model_save_path,
-        output_base_dir):
+        output_base_dir,
+        bit_ordering='serial'):
     sum_vector_a_elements_i_iter =  len(sub_fieldlist_parm_eq_vector_train_global_lst_i_ii[j_fieldlist_parm_eq_vector_train_global_lst_i][0])
     train_a_global = torch.zeros(ntrain,sum_vector_a_elements_i_iter,S_r,S_theta,S_n_phi,T_in)
     test_a_global  = torch.zeros(ntest, sum_vector_a_elements_i_iter,S_r,S_theta,S_n_phi,T_in)
@@ -260,7 +261,8 @@ def initializationTrainTestParametersFile(
                                                 quantize_last_ndims=quantize_last_ndims,
                                                 operator_type=operator_type,
                                                 dense_spatial_in=(S_r, S_theta, S_n_phi),
-                                                dense_spatial_out=(S_r, S_theta, S_n_phi))
+                                                dense_spatial_out=(S_r, S_theta, S_n_phi),
+                                                bit_ordering=bit_ordering)
                 # Print model summary
                 print("Model Summary:")
                 # The input size should be (batch_size, S_r, S_theta, S_n_phi, channels)

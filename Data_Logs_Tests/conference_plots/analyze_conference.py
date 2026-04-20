@@ -230,16 +230,31 @@ def load_all():
 
     # New sweeps — authoritative for TT and QTT
     for sweep, label in [
-        ("spectral_tt_sweep",       "Spectral-TT"),
-        ("spectral_tt_modes_sweep", "Spectral-TT"),   # modes ablation — was missing!
-        ("spectral_qtt_q3_sweep",   "Spectral-QTT-q3"),
-        ("spectral_qtt_q5_sweep",   "Spectral-QTT-q5"),
-        ("real_operator_sweep",     "Dense-QTT"),
+        ("spectral_tt_sweep",            "Spectral-TT"),
+        ("spectral_tt_modes_sweep",      "Spectral-TT"),   # modes ablation
+        ("spectral_tt_rank_m16_sweep",   "Spectral-TT"),   # full rank sweep at m=16,w=32
+        ("spectral_qtt_q3_sweep",        "Spectral-QTT-q3"),
+        ("spectral_qtt_q5_sweep",        "Spectral-QTT-q5"),
+        ("real_operator_sweep",          "Dense-QTT"),
+        ("dense_qtt_high_rank_fill",     "Dense-QTT"),
+        ("dense_qtt_high_rank_fill_v2",  "Dense-QTT"),
     ]:
         df = load_new_sweep(sweep, label)
         if not df.empty:
             print(f"  {label} ({sweep}): {len(df)} configs")
             frames.append(df)
+
+    # QTT3/QTT5 r=14 m=16 w=32 rerun (v2): load each subdir directly by quantize_last_ndims
+    for qnd, lbl in [(3, "Spectral-QTT-q3"), (5, "Spectral-QTT-q5")]:
+        _csv = f"{PSCRATCH}/spectral_qtt_r14_m16_w32/spectral_qtt_q{qnd}_r14_m16_w32/metrics.csv"
+        if os.path.exists(_csv):
+            _df = pd.read_csv(_csv)
+            if not _df.empty:
+                _df["label"] = lbl
+                _to_num(_df, ["param_count","train_l2","test_l2","train_time_s","test_time_s",
+                               "total_runtime_s","rank","modes","width","quantize_last_ndims"])
+                print(f"  {lbl} (spectral_qtt_r14_m16_w32 q{qnd}): {len(_df)} configs")
+                frames.append(_df)
 
     combined = pd.concat(frames, ignore_index=True, sort=False)
     _to_num(combined, ["param_count","train_l2","test_l2","train_time_s","rank","modes","width"])
@@ -1185,9 +1200,6 @@ def figC_dense_qtt_heatmap(df):
     sub = sub[sub["rank"] % 2 == 0]
     # Omit rank > width: bond dim exceeding channel dim is redundant parameterization
     sub = sub[sub["rank"] <= sub["width"]]
-    # Cap width at 40: all widths ≤40 have full rank coverage; beyond that jobs are sparse
-    sub = sub[sub["width"] <= 40]
-
     pivot = sub.groupby(["rank", "width"])["test_l2"].min().unstack("width")
     pivot = pivot.sort_index(ascending=False)
 
@@ -1485,6 +1497,169 @@ def figB_computational_cost(df):
     savefig(fig, "figB_computational_cost")
 
 
+# ─── INFERENCE TIME EQUIVALENTS OF FIG11 / FIGB / FIGG / FIGH ────────────────
+
+def fig11b_inference_timing_distribution(df):
+    """Inference time equivalent of fig11_timing_distribution."""
+    print("Fig 11b: Inference time distribution...")
+    has_time = df["test_time_s"].notna() & (df["test_time_s"] > 0)
+    df_t = df[has_time]
+
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+    ax_box, ax_line = axes
+
+    data_for_box = []
+    labels_for_box = []
+    colors_for_box = []
+    for label in ORDER:
+        sub = df_t[df_t["label"] == label]["test_time_s"].dropna()
+        if len(sub) < 2:
+            continue
+        data_for_box.append(sub.values)
+        labels_for_box.append(STYLE[label][2].replace(" (", "\n("))
+        colors_for_box.append(STYLE[label][0])
+
+    bp = ax_box.boxplot(data_for_box, patch_artist=True, widths=0.5,
+                        medianprops=dict(color="black", linewidth=2))
+    for patch, color in zip(bp["boxes"], colors_for_box):
+        patch.set_facecolor(color)
+        patch.set_alpha(0.75)
+
+    ax_box.set_xticklabels(labels_for_box, fontsize=9)
+    ax_box.set_ylabel("Inference Time per Epoch (seconds)")
+    ax_box.set_title("Inference Time Distribution by Method")
+    ax_box.tick_params(axis="x", labelrotation=10)
+
+    for label in ORDER:
+        sub = df_t[df_t["label"] == label]
+        if sub.empty:
+            continue
+        med = sub.groupby("width")["test_time_s"].median().reset_index().sort_values("width")
+        c, mk, name = STYLE[label]
+        ax_line.plot(med["width"], med["test_time_s"], color=c, marker=mk,
+                     linewidth=2.5, markersize=8, label=name)
+
+    ax_line.set_xlabel("Width")
+    ax_line.set_ylabel("Median Inference Time per Epoch (seconds)")
+    ax_line.set_title("Inference Speed vs. Width — All Methods")
+    ax_line.legend(framealpha=0.9)
+    ax_line.xaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+    ax_line.set_xlim(right=32)
+
+    fig.suptitle("Inference Cost Analysis", fontsize=13)
+    fig.tight_layout()
+    savefig(fig, "fig11b_inference_timing_analysis")
+
+
+def figB2_inference_computational_cost(df):
+    """Inference time equivalent of figB_computational_cost."""
+    print("Fig B2: Inference cost (inference time vs param count)...")
+    has_time = df["test_time_s"].notna() & (df["test_time_s"] > 0)
+    df_t = df[has_time].copy()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for label in ORDER:
+        sub = df_t[df_t["label"] == label]
+        if sub.empty:
+            continue
+        c, mk, name = STYLE[label]
+        ax.scatter(sub["param_count"], sub["test_time_s"],
+                   color=c, marker=mk, s=55, alpha=0.6, edgecolors="white",
+                   linewidths=0.4, label=name, zorder=3)
+
+    ax.set_xscale("log")
+    ax.set_xlabel("Parameter Count")
+    ax.set_ylabel("Inference Time per Epoch (seconds)")
+    ax.set_title("Inference Cost: Inference Time vs. Parameter Count\n(NIMROD 3D, 32³, 400 epochs)")
+    ax.xaxis.set_major_formatter(mticker.FuncFormatter(
+        lambda x, _: f"{x/1e6:.0f}M" if x >= 1e6 else (f"{x/1e3:.0f}K" if x >= 1e3 else str(int(x)))))
+    ax.legend(framealpha=0.9, loc="upper right")
+    fig.tight_layout()
+    savefig(fig, "figB2_inference_computational_cost")
+
+
+def figG2_inference_time_vs_width(df):
+    """Inference time equivalent of figG_training_time_vs_width."""
+    print("Fig G2: Inference time vs width (all methods)...")
+    has_time = df["test_time_s"].notna() & (df["test_time_s"] > 0)
+    df_t = df[has_time].copy()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    for label in ORDER:
+        sub = df_t[df_t["label"] == label]
+        if sub.empty:
+            continue
+        c, mk, name = STYLE[label]
+        ax.scatter(sub["width"], sub["test_time_s"],
+                   color=c, marker=mk, s=22, alpha=0.25,
+                   edgecolors="none", zorder=2)
+        med = sub.groupby("width")["test_time_s"].median().reset_index().sort_values("width")
+        ax.plot(med["width"], med["test_time_s"],
+                color=c, marker=mk, linewidth=2.5, markersize=8,
+                label=name, zorder=4, alpha=0.95)
+
+    ax.set_xlabel("Width")
+    ax.set_ylabel("Inference Time per Epoch (seconds)")
+    ax.set_title("Inference Time per Epoch vs. Width — All Methods\n"
+                 "(line = median per width; faint points = individual configs)")
+    ax.legend(framealpha=0.9, loc="upper left")
+    ax.xaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+    ax.set_xlim(left=0, right=32)
+    ax.set_ylim(bottom=0)
+    fig.tight_layout()
+    savefig(fig, "figG2_inference_time_vs_width")
+
+
+def figH2_inference_time_dense_vs_spectral(df):
+    """Inference time equivalent of figH_training_time_dense_vs_spectral."""
+    print("Fig H2: Inference time Dense vs Spectral (with modes range band)...")
+    has_time = df["test_time_s"].notna() & (df["test_time_s"] > 0)
+    df_t = df[has_time].copy()
+
+    modes_df = load_modes_sweep()
+    tt_base = df_t[df_t["label"] == "Spectral-TT"].copy()
+    if not modes_df.empty:
+        modes_t = modes_df[modes_df["test_time_s"].notna() & (modes_df["test_time_s"] > 0)].copy()
+        tt_all = pd.concat([tt_base, modes_t], ignore_index=True)
+    else:
+        tt_all = tt_base
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+
+    dense = df_t[df_t["label"] == "Dense-QTT"]
+    d_stats = (dense.groupby("width")["test_time_s"]
+                     .median().reset_index().sort_values("width"))
+    c_d, mk_d, name_d = STYLE["Dense-QTT"]
+    ax.plot(d_stats["width"], d_stats["test_time_s"],
+            color=c_d, marker=mk_d, linewidth=2.5, markersize=8,
+            label=name_d, zorder=5)
+
+    tt_stats = (tt_all.groupby("width")["test_time_s"]
+                       .agg(["median", "min", "max"])
+                       .reset_index().sort_values("width"))
+    c_tt, mk_tt, name_tt = STYLE["Spectral-TT"]
+    ax.fill_between(tt_stats["width"], tt_stats["min"], tt_stats["max"],
+                    color=c_tt, alpha=0.20,
+                    label=f"{name_tt} — range across modes")
+    ax.plot(tt_stats["width"], tt_stats["median"],
+            color=c_tt, marker=mk_tt, linewidth=2.5, markersize=8,
+            label=f"{name_tt} — median", zorder=5)
+
+    ax.set_xlabel("Width")
+    ax.set_ylabel("Inference Time per Epoch (seconds)")
+    ax.set_title("Inference Time per Epoch: RealOp-QTT vs Spectral-TT\n"
+                 "(band = range across modes configurations; "
+                 "RealOp has no modes parameter)")
+    ax.legend(framealpha=0.9)
+    ax.xaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+    ax.set_xlim(left=0, right=32)
+    ax.set_ylim(bottom=0)
+    fig.tight_layout()
+    savefig(fig, "figH2_inference_time_dense_vs_spectral")
+
+
 # ─── QTT PADDING EFFECT FIGURES ──────────────────────────────────────────────
 
 def _qtt_padding_meta(modes_list, base=2):
@@ -1745,6 +1920,79 @@ def figP3_qtt3_training_curves(curves, meta_df):
     savefig(fig, "figP3_qtt3_training_curves")
 
 
+# ─── FIGURE I: REALOP-QTT ONLY PARETO ────────────────────────────────────────
+
+def figI_realop_qtt_pareto(df):
+    """Pareto plot for the Dense (Real-Op) QTT method only.
+
+    Scatter all configs coloured by rank; draw per-rank Pareto frontiers
+    (thin, semi-transparent) and a thick overall Pareto frontier line.
+    """
+    print("Fig I: RealOp-QTT only Pareto...")
+    sub = df[df["label"] == "Dense-QTT"].copy()
+    if sub.empty:
+        print("  WARNING: no Dense-QTT data")
+        return
+
+    # Physical filter: bond dim > channel dim is redundant
+    sub = sub[sub["rank"] <= sub["width"]]
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+
+    # ── per-rank scatter + thin frontier ──────────────────────────────────────
+    ranks_sorted = sorted(sub["rank"].dropna().unique())
+    cmap = plt.cm.viridis
+    norm = plt.Normalize(vmin=min(ranks_sorted), vmax=max(ranks_sorted))
+
+    sc = ax.scatter(sub["param_count"], sub["test_l2"],
+                    c=sub["rank"], cmap=cmap, norm=norm,
+                    s=45, alpha=0.40, linewidths=0.4,
+                    edgecolors="white", zorder=3)
+
+    # ── overall Pareto frontier ────────────────────────────────────────────────
+    pf = pareto_frontier(sub)
+    if len(pf) > 1:
+        ax.plot(pf["param_count"], pf["test_l2"],
+                color=STYLE["Dense-QTT"][0], linewidth=2.5,
+                zorder=5, alpha=0.95)
+
+    # ── annotate best ─────────────────────────────────────────────────────────
+    best = sub.loc[sub["test_l2"].idxmin()]
+    _bp = best["param_count"]
+    _bp_str = f"{int(_bp/1e3)}K"
+    ax.annotate(
+        f"Best: r={int(best['rank'])}, w={int(best['width'])}\n"
+        f"{best['test_l2']:.4f}, {_bp_str} params",
+        xy=(_bp, best["test_l2"]),
+        xytext=(_bp * 3.5, best["test_l2"] + 0.002),
+        arrowprops=dict(arrowstyle="->", color="black", lw=1.4),
+        fontsize=9, color=STYLE["Dense-QTT"][0],
+    )
+
+    # ── colorbar for rank ─────────────────────────────────────────────────────
+    cbar = fig.colorbar(sc, ax=ax, fraction=0.035, pad=0.02)
+    cbar.set_label("Rank", fontsize=12)
+    cbar.set_ticks([int(r) for r in ranks_sorted if int(r) % 4 == 0 or r == min(ranks_sorted)])
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("Parameter Count")
+    ax.set_ylabel("Test L² Error")
+    ax.set_title("RealOp-QTT: Pareto Frontier (param count vs accuracy)\n"
+                 "(Dense 8-way operator, q=8 QTT, NIMROD 3D 32³, 400 epochs)")
+
+    ax.xaxis.set_major_formatter(mticker.FuncFormatter(
+        lambda x, _: f"{x/1e6:.1f}M" if x >= 1e6
+        else (f"{x/1e3:.0f}K" if x >= 1e3 else str(int(x)))))
+    _y_ticks = np.round(np.arange(0.012, 0.032, 0.002), 4)
+    ax.yaxis.set_major_locator(mticker.FixedLocator(_y_ticks))
+    ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3f"))
+    ax.yaxis.set_minor_locator(mticker.NullLocator())
+
+    fig.tight_layout()
+    savefig(fig, "figI_realop_qtt_pareto")
+
+
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -1769,10 +2017,15 @@ def main():
     figB_computational_cost(df)
     figG_training_time_vs_width(df)
     figH_training_time_dense_vs_spectral(df)
+    fig11b_inference_timing_distribution(df)
+    figB2_inference_computational_cost(df)
+    figG2_inference_time_vs_width(df)
+    figH2_inference_time_dense_vs_spectral(df)
     figC_dense_qtt_heatmap(df)
     figD_spectral_tt_heatmap(df)
     figE_spectral_heatmaps_comparison(df)
     figF_spectral_pareto(df)
+    figI_realop_qtt_pareto(df)
 
     # QTT padding effect analysis
     _modes_data = _load_modes_all()

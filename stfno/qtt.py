@@ -71,6 +71,161 @@ def _fold_shape_only(
     return folded, ms, pads, qsizes
 
 
+def _compute_bit_perm(ms: List[int], ordering: str, bitrev_ax_indices: set) -> List[int]:
+    """Compute bit permutation for QTT mode ordering.
+
+    Returns perm such that perm[k] = j means TT core k corresponds to serial bit j.
+
+    'serial': identity (no reordering).
+    'interleaved': at each bit level b, take bit b from each axis (skip axes with fewer bits).
+    'bitrev_interleaved': like interleaved but axes in bitrev_ax_indices have their bits
+        traversed in reversed significance (MSB first).
+    'paired_spatial': 8-axis real_op — Cin | xi0,Xo0,xi1,Xo1,... | yi0,Yo0,... | zi0,Zo0,... | Cout
+    'paired_all': 8-axis real_op — Cin | xi0,Xo0,yi0,Yo0,zi0,Zo0 | xi1,... | Cout
+    'ch_serial': 8-axis real_op — contracted serial (Cin,xi,yi,zi) then free serial (Cout,Xo,Yo,Zo).
+        Identical to 'serial' for standard real_op layout; kept for documentation.
+    'ch_io_block': 8-axis real_op — contracted serial, then free in order Xo,Yo,Zo,Cout.
+    'ch_paired_spatial': 8-axis real_op — same as 'serial' after free-last fix.
+    'ch_paired_all': 8-axis real_op — Cin | interleaved (xi,yi,zi) per bit level | Cout,Xo,Yo,Zo.
+        Only ch_* ordering that remains genuinely distinct after the free-last fix.
+    'input_interleaved': 8-axis real_op — interleaved contracted axes (Cin,xi,yi,zi) per bit level,
+        then free axes (Cout,Xo,Yo,Zo) in serial order at the end.
+    """
+    total = sum(ms)
+    if total == 0 or ordering == 'serial':
+        return list(range(total))
+
+    offsets: List[int] = []
+    o = 0
+    for m in ms:
+        offsets.append(o)
+        o += m
+
+    if ordering in ('interleaved', 'bitrev_interleaved'):
+        perm: List[int] = []
+        max_bits = max(ms) if ms else 0
+        for b in range(max_bits):
+            for ax_idx, m in enumerate(ms):
+                if b < m:
+                    if ordering == 'bitrev_interleaved' and ax_idx in bitrev_ax_indices:
+                        bit_idx = m - 1 - b  # reversed: coarsest (MSB) first
+                    else:
+                        bit_idx = b
+                    perm.append(offsets[ax_idx] + bit_idx)
+        return perm
+
+    if ordering == 'paired_spatial':
+        # Requires 8-axis real_op tensor: [Cin=0, xi=1, yi=2, zi=3, Cout=4, Xo=5, Yo=6, Zo=7]
+        if len(ms) != 8:
+            return list(range(total))
+        perm = []
+        for b in range(ms[0]):                          # Cin bits
+            perm.append(offsets[0] + b)
+        for in_ax, out_ax in [(1, 5), (2, 6), (3, 7)]:  # xi/Xo, yi/Yo, zi/Zo
+            for b in range(max(ms[in_ax], ms[out_ax])):
+                if b < ms[in_ax]:
+                    perm.append(offsets[in_ax] + b)
+                if b < ms[out_ax]:
+                    perm.append(offsets[out_ax] + b)
+        for b in range(ms[4]):                          # Cout bits
+            perm.append(offsets[4] + b)
+        return perm
+
+    if ordering == 'paired_all':
+        # Requires 8-axis real_op tensor: [Cin=0, xi=1, yi=2, zi=3, Cout=4, Xo=5, Yo=6, Zo=7]
+        if len(ms) != 8:
+            return list(range(total))
+        perm = []
+        for b in range(ms[0]):                          # Cin bits
+            perm.append(offsets[0] + b)
+        spatial_pairs = [(1, 5), (2, 6), (3, 7)]
+        max_spatial = max(ms[ax] for pair in spatial_pairs for ax in pair)
+        for b in range(max_spatial):                    # xi0,Xo0,yi0,Yo0,zi0,Zo0 | xi1,...
+            for in_ax, out_ax in spatial_pairs:
+                if b < ms[in_ax]:
+                    perm.append(offsets[in_ax] + b)
+                if b < ms[out_ax]:
+                    perm.append(offsets[out_ax] + b)
+        for b in range(ms[4]):                          # Cout bits
+            perm.append(offsets[4] + b)
+        return perm
+
+    if ordering == 'ch_serial':
+        # FIXED (free-last): contracted axes Cin|xi|yi|zi serially, then free axes Cout|Xo|Yo|Zo.
+        # Note: this is identical to 'serial' for an 8-axis tensor; kept for documentation.
+        # Requires 8-axis real_op tensor: [Cin=0, xi=1, yi=2, zi=3, Cout=4, Xo=5, Yo=6, Zo=7]
+        if len(ms) != 8:
+            return list(range(total))
+        perm = []
+        for ax in [0, 1, 2, 3]:   # contracted: Cin, xi, yi, zi
+            for b in range(ms[ax]): perm.append(offsets[ax] + b)
+        for ax in [4, 5, 6, 7]:   # free: Cout, Xo, Yo, Zo
+            for b in range(ms[ax]): perm.append(offsets[ax] + b)
+        return perm
+
+    if ordering == 'ch_io_block':
+        # FIXED (free-last): contracted serial (Cin|xi|yi|zi), then free in io order: Xo|Yo|Zo|Cout.
+        # Keeps the "input before output" spirit but only in the free section at the end.
+        # Requires 8-axis real_op tensor: [Cin=0, xi=1, yi=2, zi=3, Cout=4, Xo=5, Yo=6, Zo=7]
+        if len(ms) != 8:
+            return list(range(total))
+        perm = []
+        for ax in [0, 1, 2, 3]:   # contracted: Cin, xi, yi, zi
+            for b in range(ms[ax]): perm.append(offsets[ax] + b)
+        for ax in [5, 6, 7, 4]:   # free: Xo, Yo, Zo, Cout (Cout last)
+            for b in range(ms[ax]): perm.append(offsets[ax] + b)
+        return perm
+
+    if ordering == 'ch_paired_spatial':
+        # FIXED (free-last): contracted serial, free serial = identical to 'serial'.
+        # Pairing contracted spatial dims with their free counterparts makes no sense once
+        # free axes are pushed to the end; the contracted part is inherently serial per-dim.
+        # Requires 8-axis real_op tensor: [Cin=0, xi=1, yi=2, zi=3, Cout=4, Xo=5, Yo=6, Zo=7]
+        if len(ms) != 8:
+            return list(range(total))
+        perm = []
+        for ax in [0, 1, 2, 3, 4, 5, 6, 7]:  # = serial
+            for b in range(ms[ax]): perm.append(offsets[ax] + b)
+        return perm
+
+    if ordering == 'ch_paired_all':
+        # FIXED (free-last): interleave CONTRACTED spatial dims at each bit level, then free at end.
+        # Structure: Cin_bits | (xi0,yi0,zi0) | (xi1,yi1,zi1) | ... | Cout_bits | Xo_bits | Yo_bits | Zo_bits
+        # This is the only ch_* ordering that remains genuinely distinct after the free-last fix.
+        # Requires 8-axis real_op tensor: [Cin=0, xi=1, yi=2, zi=3, Cout=4, Xo=5, Yo=6, Zo=7]
+        if len(ms) != 8:
+            return list(range(total))
+        perm = []
+        for b in range(ms[0]):   perm.append(offsets[0] + b)   # Cin
+        contracted_spatial = [1, 2, 3]                          # xi, yi, zi
+        max_bits = max(ms[ax] for ax in contracted_spatial)
+        for b in range(max_bits):                               # interleave contracted spatial
+            for ax in contracted_spatial:
+                if b < ms[ax]: perm.append(offsets[ax] + b)
+        for ax in [4, 5, 6, 7]:                                 # free: Cout, Xo, Yo, Zo
+            for b in range(ms[ax]): perm.append(offsets[ax] + b)
+        return perm
+
+    if ordering == 'input_interleaved':
+        # Free-last variant of 'interleaved': all contracted axes (Cin, xi, yi, zi) interleaved
+        # at each bit level, then all free axes (Cout, Xo, Yo, Zo) in serial order at the end.
+        # Structure: (Cin0,xi0,yi0,zi0) | (Cin1,xi1,yi1,zi1) | ... | Cout_bits | Xo_bits | Yo_bits | Zo_bits
+        # Requires 8-axis real_op tensor: [Cin=0, xi=1, yi=2, zi=3, Cout=4, Xo=5, Yo=6, Zo=7]
+        if len(ms) != 8:
+            return list(range(total))
+        perm = []
+        contracted = [0, 1, 2, 3]                               # Cin, xi, yi, zi
+        max_bits = max(ms[ax] for ax in contracted)
+        for b in range(max_bits):                               # interleave all contracted
+            for ax in contracted:
+                if b < ms[ax]: perm.append(offsets[ax] + b)
+        for ax in [4, 5, 6, 7]:                                 # free: Cout, Xo, Yo, Zo
+            for b in range(ms[ax]): perm.append(offsets[ax] + b)
+        return perm
+
+    return list(range(total))
+
+
 def qtt_fold_selected(
     x: torch.Tensor,
     quantize_axes: Sequence[int],
@@ -145,6 +300,8 @@ class QTTWeight(nn.Module):
         dtype = torch.cfloat,
         device: torch.device | None = None,
         tt_order: str = 'in-out-bits',  # 'in-out-bits' (default, current) or 'in-bits-out' (optimized operator)
+        bit_ordering: str = 'serial',   # 'serial', 'interleaved', 'bitrev_interleaved', 'paired_spatial', 'paired_all'
+        bitrev_ax_indices = None,        # optional Sequence[int]: quantized-axis indices with reversed bits
     ):
         super().__init__()
         if quantize_last_ndims < 0 or quantize_last_ndims > len(weight_shape):
@@ -165,6 +322,14 @@ class QTTWeight(nn.Module):
             pads=pads,
             base=base,
         )
+
+        # Bit ordering permutation for QTT dimensions
+        _valid_orderings = ('serial', 'interleaved', 'bitrev_interleaved', 'paired_spatial', 'paired_all',
+                            'ch_serial', 'ch_io_block', 'ch_paired_spatial', 'ch_paired_all',
+                            'input_interleaved')
+        self.bit_ordering = bit_ordering if bit_ordering in _valid_orderings else 'serial'
+        _bitrev_set = set(bitrev_ax_indices) if bitrev_ax_indices is not None else set()
+        self._bit_perm: List[int] = _compute_bit_perm(ms, self.bit_ordering, _bitrev_set)
 
         # Store TT ordering preference
         self._tt_order = tt_order
@@ -264,11 +429,26 @@ class QTTWeight(nn.Module):
         # The factors in ComplexTTTensor are stored as Parameters named factor_0, factor_1, etc.
         # within a ComplexFactorList container. We need to access them directly via named_parameters.
         #
-        # Scale the per-factor std so that the product of all factors has approximately
-        # the desired std. For order N cores, use std_per_core = std^(1/N).
+        # Rank-aware scaling: for a TT of order N with bond rank R, the reconstructed
+        # tensor has E[w^2] ≈ R^(N-1) × (a²/3)^N where a is the per-core uniform range.
+        # Solving for a so that std(w) = init_std:
+        #   a = sqrt(3) × init_std^(1/N) / R^((N-1)/(2N))
+        # This prevents overflow for large N (e.g. Dense-QTT with quantize_last_ndims=8
+        # has N≈47 binary modes and R=20, giving std(w)~10^15 with the naive a=init_std^(1/N)).
         tt_order = self.tt.order if hasattr(self.tt, 'order') else len(folded_shape)
+        # Extract scalar rank for normalization (use the rank parameter passed to __init__)
+        if isinstance(rank, (int, float)) and float(rank) > 1.0:
+            rank_scalar = max(1, int(round(float(rank))))
+        elif isinstance(rank, (list, tuple)) and len(rank) > 0:
+            rank_scalar = max(1, int(max(int(r) for r in rank)))
+        else:
+            rank_scalar = 1
         if tt_order > 0:
-            std_per_core = init_std_val ** (1.0 / tt_order)
+            std_per_core = (
+                math.sqrt(3.0)
+                * (init_std_val ** (1.0 / tt_order))
+                / (rank_scalar ** ((tt_order - 1) / (2.0 * tt_order)))
+            )
         else:
             std_per_core = init_std_val
 
@@ -333,6 +513,24 @@ class QTTWeight(nn.Module):
             if folded_dense.dim() == (2 + total_bits):
                 perm = [0, total_bits + 1] + list(range(1, total_bits + 1))
                 folded_dense = folded_dense.permute(perm).contiguous()
+        # Apply bit ordering permutation: convert TT-ordered bits back to serial order.
+        # After this, folded_dense has bits in the same order as qtt_fold_selected produced.
+        #
+        # folded_dense[..., v_0,...,v_{B-1}]: TT core k has value v_k = serial bit _bit_perm[k].
+        # serial_folded[..., s_0,...,s_{B-1}]: s_j = value of serial bit j.
+        # Relationship: serial_folded[...,s] = folded_dense[..., s_{perm[0]}, ..., s_{perm[B-1]}]
+        #   where perm = _bit_perm.
+        # PyTorch permute(perm_arg)[...,j] = folded_dense[..., j_{perm_arg^{-1}(0)}, ...]
+        # So we need perm_arg = inverse(_bit_perm).
+        if self.bit_ordering != 'serial' and self._bit_perm:
+            n_non_q = len(self._meta.orig_shape) - len(self._meta.quantize_axes)
+            total_bits = len(self._bit_perm)
+            if total_bits > 0 and folded_dense.dim() == n_non_q + total_bits:
+                inv_perm = [0] * total_bits
+                for k, p in enumerate(self._bit_perm):
+                    inv_perm[p] = k
+                full_perm = list(range(n_non_q)) + [n_non_q + inv_perm[k] for k in range(total_bits)]
+                folded_dense = folded_dense.permute(full_perm).contiguous()
         dense_tensor = qtt_unfold_selected(folded_dense, self._meta)
         
         # Update cache

@@ -186,6 +186,21 @@ def _contract_qtt_dense_operator(
             else:
                 out_subs.append(dim_id)
 
+    # Apply bit ordering permutation: remap TT cores so each handles the serial bit
+    # indicated by _bit_perm (perm[k]=j → TT core k contracts with serial bit j).
+    # x_subs/out_subs stay in serial order; only weight_mode_ids is permuted.
+    _bit_perm = getattr(qtt_weight, '_bit_perm', None)
+    if _bit_perm and getattr(qtt_weight, 'bit_ordering', 'serial') != 'serial':
+        _n_non_q = len(weight_shape) - len(meta.quantize_axes)
+        _total_bits = len(_bit_perm)
+        if _total_bits > 0 and len(weight_mode_ids) == _n_non_q + _total_bits:
+            _serial_ids = list(weight_mode_ids[_n_non_q:_n_non_q + _total_bits])
+            weight_mode_ids = (
+                list(weight_mode_ids[:_n_non_q])
+                + [_serial_ids[_bit_perm[p]] for p in range(_total_bits)]
+                + list(weight_mode_ids[_n_non_q + _total_bits:])
+            )
+
     # Assign rank subscript IDs
     n_cores = len(weight_mode_ids)
     rank_ids = [next_id + i for i in range(n_cores + 1)]
@@ -263,6 +278,8 @@ class QTTOperator3d(nn.Module):
         quantize_last_ndims: int = 8,
         init_std: str | float = 'auto',
         base: int = 2,
+        bit_ordering: str = 'serial',
+        bitrev_ax_indices = None,
     ):
         super().__init__()
         self.in_channels = in_channels
@@ -291,6 +308,8 @@ class QTTOperator3d(nn.Module):
             base=base,
             dtype=torch.float32,
             tt_order='in-out-bits',
+            bit_ordering=bit_ordering,
+            bitrev_ax_indices=bitrev_ax_indices,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -331,6 +350,8 @@ class DenseOrQTT3DOperator(nn.Module):
         quantize_last_ndims: int = 8,
         init_std: str | float = 'auto',
         timing: bool = False,
+        bit_ordering: str = 'serial',
+        bitrev_ax_indices = None,
     ):
         super().__init__()
         self.factorization = (factorization or 'dense').lower()
@@ -350,6 +371,8 @@ class DenseOrQTT3DOperator(nn.Module):
                 rank=rank,
                 quantize_last_ndims=quantize_last_ndims,
                 init_std=init_std,
+                bit_ordering=bit_ordering,
+                bitrev_ax_indices=bitrev_ax_indices,
             )
         else:
             raise ValueError(

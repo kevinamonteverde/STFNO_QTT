@@ -60,6 +60,7 @@ def multiPDEs_overallsetup(
             ft_implementation,
             quantize_last_ndims=3,
             operator_type='spectral',
+            bit_ordering='serial',
             output_base_dir='results'):
 
     train_a_range = range(n_beg,n_beg+(T_in*1),1)
@@ -118,7 +119,7 @@ def multiPDEs_overallsetup(
                             train_loader, test_loader,
                             model, optimizer, scheduler,
                             count_params_model, model_save_path,
-                            output_base_dir
+                            output_base_dir,
                         ) = initializationTrainTestParametersFile(
                             sub_fieldlist_parm_eq_vector_train_global_lst_i_ii, j_fieldlist_parm_eq_vector_train_global_lst_i,
                             data_read_global,
@@ -151,7 +152,8 @@ def multiPDEs_overallsetup(
                             train_loader, test_loader,
                             model, optimizer, scheduler,
                             count_params_model, model_save_path,
-                            output_base_dir
+                            output_base_dir,
+                            bit_ordering=bit_ordering,
                         )
                                 
                         singlePDENeuralOperator(data_read_global,

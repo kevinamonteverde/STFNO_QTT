@@ -53,7 +53,9 @@ class FNO2d_NIMRODglobal_3D(nn.Module):
                                                 quantize_last_ndims=3,
                                                 operator_type='spectral',
                                                 dense_spatial_in=None,
-                                                dense_spatial_out=None):
+                                                dense_spatial_out=None,
+                                                bit_ordering='serial',
+                                                bitrev_ax_indices=None):
         super(FNO2d_NIMRODglobal_3D, self).__init__()        
         # if total_vector_u_elements_i == 10:
         #     self.input_parameter_order = [[0,1,2,3,4,5,6,7,8,9],[3,4,5,0,1,2],[6,0,1,2,3,4,5,7,8,9],[7,8,9,0,1,2]]
@@ -90,6 +92,9 @@ class FNO2d_NIMRODglobal_3D(nn.Module):
         self.total_vector_u_elements_i= total_vector_u_elements_i
         self.n_layers = number_of_layers
         self.p_linears = nn.ModuleList([nn.Linear((self.T_in)+3, self.width) for i in range(self.total_vector_a_elements_i)])
+        # 'real_op' is the preferred name for the real-valued 8-way operator; 'dense' is an alias
+        if operator_type == 'real_op':
+            operator_type = 'dense'
         self.operator_type = operator_type
         self.conv_linears = nn.ModuleList()
         if operator_type == 'dense':
@@ -110,6 +115,8 @@ class FNO2d_NIMRODglobal_3D(nn.Module):
                             factorization=factorization,
                             rank=rank,
                             quantize_last_ndims=quantize_last_ndims,
+                            bit_ordering=bit_ordering,
+                            bitrev_ax_indices=bitrev_ax_indices,
                         )
                         for i in range(len(self.mWidth_input_parameters))
                     ])
@@ -133,6 +140,7 @@ class FNO2d_NIMRODglobal_3D(nn.Module):
                                 implementation=implementation,
                                 separable=False,
                                 quantize_last_ndims=quantize_last_ndims,
+                                bit_ordering=bit_ordering,
                             )
                             for i in range(len(self.mWidth_input_parameters))
                         ])
