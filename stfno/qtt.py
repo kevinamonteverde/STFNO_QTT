@@ -434,7 +434,7 @@ class QTTWeight(nn.Module):
         # Solving for a so that std(w) = init_std:
         #   a = sqrt(3) × init_std^(1/N) / R^((N-1)/(2N))
         # This prevents overflow for large N (e.g. Dense-QTT with quantize_last_ndims=8
-        # has N≈47 binary modes and R=20, giving std(w)~10^15 with the naive a=init_std^(1/N)).
+        # has N=42 binary modes at w=56 and R=20, giving std(w)~10^15 with the naive a=init_std^(1/N)).
         tt_order = self.tt.order if hasattr(self.tt, 'order') else len(folded_shape)
         # Extract scalar rank for normalization (use the rank parameter passed to __init__)
         if isinstance(rank, (int, float)) and float(rank) > 1.0:
