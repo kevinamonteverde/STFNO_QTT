@@ -262,7 +262,8 @@ def main():
             print(
                 f"Epoch {ep:4d}/{args.epochs}  "
                 f"train={train_l2:.4f}  val={val_l2:.4f}  test={test_l2:.4f}  "
-                f"best_test={best_test_l2:.4f}"
+                f"best_test={best_test_l2:.4f}",
+                flush=True,
             )
 
     # ------------------------------------------------------------------
