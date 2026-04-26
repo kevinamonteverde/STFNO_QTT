@@ -266,6 +266,16 @@ def main():
                 flush=True,
             )
 
+            # Save intermediate results so a timeout doesn't lose everything
+            with open(os.path.join(args.output_dir, 'results.json'), 'w') as f:
+                json.dump({
+                    'config': vars(args),
+                    'n_params': n_params,
+                    'best_val_l2': best_val_l2,
+                    'best_test_l2': best_test_l2,
+                    'history': metrics_history,
+                }, f, indent=2)
+
     # ------------------------------------------------------------------
     # Save final results
     # ------------------------------------------------------------------
