@@ -40,7 +40,7 @@ for ax, metric, ylabel in zip(axes, ['train_l2', 'val_l2'],
     ax.grid(True, which='both', alpha=0.3)
 
 plt.tight_layout()
-out_path = OUT_DIR / 'swe_realop_learning_curves_200ep.png'
+out_path = OUT_DIR / 'figures' / 'swe_realop_learning_curves_200ep.png'
 plt.savefig(out_path, dpi=120, bbox_inches='tight')
 print(f"Saved: {out_path}")
 plt.close()
