@@ -82,7 +82,7 @@ ax.text(2e4, FNO_BASELINE * 0.91, 'FNO baseline (9.53e−2)', color=FNO_COLOR,
 # Annotate headline points — (xytext = offset in points from data point)
 for dirname, note, ha, xytext in [
     ('spectral_w64_m16',         '2.00e−3\n(47× FNO)',  'right', (-15, 28)),
-    ('realop_qtt_r32_w32_400ep', '3.17e−2\n(3.0× FNO)', 'left',  (15,  28)),
+    ('realop_qtt_r32_w32_400ep', '3.17e−2\n(3.0× FNO)', 'right', (-15, 40)),
     ('realop_qtt_r32_w64_400ep', '2.47e−2\n(3.9× FNO)', 'right', (15,  28)),
 ]:
     r = load(dirname)
