@@ -76,18 +76,18 @@ for pts, color, ls in [
 
 # FNO baseline
 ax.axhline(FNO_BASELINE, color=FNO_COLOR, linestyle=':', linewidth=2, zorder=4)
-ax.text(2e4, FNO_BASELINE * 1.12, 'FNO baseline (9.53e−2)', color=FNO_COLOR,
-        fontsize=9, va='bottom')
+ax.text(2e4, FNO_BASELINE * 0.91, 'FNO baseline (9.53e−2)', color=FNO_COLOR,
+        fontsize=9, va='top')
 
-# Annotate headline points
-for dirname, note, ha in [
-    ('spectral_w64_m16',       '2.00e−3\n(47× FNO)', 'left'),
-    ('realop_qtt_r32_w64_400ep', '2.47e−2\n(3.9× FNO)', 'right'),
+# Annotate headline points — (xytext = offset in points from data point)
+for dirname, note, ha, xytext in [
+    ('spectral_w64_m16',         '2.00e−3\n(47× FNO)',  'right', (-15, 28)),
+    ('realop_qtt_r32_w64_400ep', '2.47e−2\n(3.9× FNO)', 'right', (15,  28)),
 ]:
     r = load(dirname)
     if r:
         ax.annotate(note, xy=(r['n_params'], r['best_test_l2']),
-                    xytext=(15, 8), textcoords='offset points',
+                    xytext=xytext, textcoords='offset points',
                     fontsize=8, color='black',
                     arrowprops=dict(arrowstyle='->', color='black', lw=0.8),
                     ha=ha)
