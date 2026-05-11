@@ -245,9 +245,10 @@ print(f"Saved {out}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FIG 4 — Learning curves (all 400ep runs + spectral references)
+# FIG 4 — Learning curves (all runs including spectral actual curves)
 # ─────────────────────────────────────────────────────────────────────────────
 curve_configs = [
+    # Realop curves (400 epochs)
     ('realop_qtt_r8_w32_400ep',   'Realop r=8  w=32 (29K)',   W32_COLOR,  ':',  1.5),
     ('realop_qtt_r16_w32_400ep',  'Realop r=16 w=32 (91K)',   W32_COLOR,  '--', 1.5),
     ('realop_qtt_r24_w32_400ep',  'Realop r=24 w=32 (194K)',  W32_COLOR,  '-',  1.5),
@@ -255,6 +256,9 @@ curve_configs = [
     ('realop_qtt_r16_w64',        'Realop r=16 w=64 (112K)',  W64_COLOR,  '--', 1.5),
     ('realop_qtt_r24_w64_400ep',  'Realop r=24 w=64 (220K)',  W64_COLOR,  '-',  1.5),
     ('realop_qtt_r32_w64_400ep',  'Realop r=32 w=64 (370K)',  W64_COLOR,  '-',  2.5),
+    # Spectral curves (200 epochs — converge fast then plateau)
+    ('baseline_spectral_dense_w32_m16', 'Spectral w=32 (2.1M)', SPEC_COLOR, '--', 2.0),
+    ('spectral_w64_m16',                'Spectral w=64 (8.4M)', SPEC_COLOR, '-',  2.5),
 ]
 
 fig, ax = plt.subplots(figsize=(9, 5))
@@ -266,27 +270,19 @@ for dirname, label, color, ls, lw in curve_configs:
         continue
     epochs = [h['epoch'] for h in r['history']]
     vals   = [h['val_l2'] for h in r['history']]
-    ax.semilogy(epochs, vals, color=color, linestyle=ls, linewidth=lw,
-                label=label, alpha=0.9)
+    line, = ax.semilogy(epochs, vals, color=color, linestyle=ls, linewidth=lw,
+                        label=label, alpha=0.9)
+    # Mark endpoint of spectral curves so it's clear they stopped at ep 200
+    if 'spectral' in dirname:
+        ax.semilogy(epochs[-1], vals[-1], 'o', color=color, markersize=7, zorder=5)
 
-# Reference lines
+# FNO baseline reference
 ax.axhline(FNO_BASELINE, color=FNO_COLOR, linestyle=':', linewidth=2, zorder=1)
 ax.text(5, FNO_BASELINE * 1.08, 'FNO baseline (9.53e−2)', color=FNO_COLOR, fontsize=8.5)
 
-spec32 = load('baseline_spectral_dense_w32_m16')
-spec64 = load('spectral_w64_m16')
-if spec32:
-    ax.axhline(spec32['best_test_l2'], color=SPEC_COLOR, linestyle='-.', linewidth=1.5)
-    ax.text(5, spec32['best_test_l2'] * 0.88, 'Spectral w=32 (3.28e−3)',
-            color=SPEC_COLOR, fontsize=8.5)
-if spec64:
-    ax.axhline(spec64['best_test_l2'], color=SPEC_COLOR, linestyle='-', linewidth=1.5)
-    ax.text(5, spec64['best_test_l2'] * 0.72, 'Spectral w=64 (2.00e−3)',
-            color=SPEC_COLOR, fontsize=8.5)
-
 ax.set_xlabel('Epoch', fontsize=11)
 ax.set_ylabel('Val L² Error', fontsize=11)
-ax.set_title('SWE Learning Curves — Realop QTT\n(w=32 orange, w=64 red; dashed/solid = lighter/heavier)', fontsize=11)
+ax.set_title('SWE Learning Curves — All Models\n(blue=spectral, orange=realop w=32, red=realop w=64; dots mark spectral endpoint at ep 200)', fontsize=11)
 ax.legend(fontsize=8, loc='upper right', ncol=2)
 ax.grid(True, which='both', alpha=0.3)
 plt.tight_layout()
