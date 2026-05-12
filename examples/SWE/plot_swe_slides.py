@@ -31,15 +31,15 @@ FNO_COLOR    = '#7f7f7f'   # grey — FNO baseline
 # ─────────────────────────────────────────────────────────────────────────────
 configs_pareto = [
     # (dirname,               label,             color,      marker, ms)
-    ('baseline_spectral_dense_w32_m16', 'Spectral w=32', SPEC_COLOR, 's', 10),
-    ('spectral_w64_m16',                'Spectral w=64', SPEC_COLOR, 'D', 12),
-    ('realop_qtt_r8_w32_400ep',   'Realop r=8  w=32',  W32_COLOR, 'o', 7),
-    ('realop_qtt_r16_w32_400ep',  'Realop r=16 w=32',  W32_COLOR, 'o', 7),
-    ('realop_qtt_r24_w32_400ep',  'Realop r=24 w=32',  W32_COLOR, 'o', 7),
-    ('realop_qtt_r32_w32_400ep',  'Realop r=32 w=32',  W32_COLOR, 'o', 9),
-    ('realop_qtt_r16_w64',        'Realop r=16 w=64',  W64_COLOR, '^', 7),
-    ('realop_qtt_r24_w64_400ep',  'Realop r=24 w=64',  W64_COLOR, '^', 7),
-    ('realop_qtt_r32_w64_400ep',  'Realop r=32 w=64',  W64_COLOR, '^', 9),
+    ('baseline_spectral_dense_w32_m16', 'STFNO w=32', SPEC_COLOR, 's', 10),
+    ('spectral_w64_m16',                'STFNO w=64', SPEC_COLOR, 'D', 12),
+    ('realop_qtt_r8_w32_400ep',   'ST-NO r=8  w=32',  W32_COLOR, 'o', 7),
+    ('realop_qtt_r16_w32_400ep',  'ST-NO r=16 w=32',  W32_COLOR, 'o', 7),
+    ('realop_qtt_r24_w32_400ep',  'ST-NO r=24 w=32',  W32_COLOR, 'o', 7),
+    ('realop_qtt_r32_w32_400ep',  'ST-NO r=32 w=32',  W32_COLOR, 'o', 9),
+    ('realop_qtt_r16_w64',        'ST-NO r=16 w=64',  W64_COLOR, '^', 7),
+    ('realop_qtt_r24_w64_400ep',  'ST-NO r=24 w=64',  W64_COLOR, '^', 7),
+    ('realop_qtt_r32_w64_400ep',  'ST-NO r=32 w=64',  W64_COLOR, '^', 9),
 ]
 
 fig, ax = plt.subplots(figsize=(7, 5))
@@ -97,11 +97,11 @@ for dirname, note, ha, xytext in [
 import matplotlib.lines as mlines
 leg_handles = [
     mlines.Line2D([], [], color=SPEC_COLOR, marker='s', markersize=9,
-                  linestyle='-', label='Spectral (dense FNO)'),
+                  linestyle='-', label='STFNO (dense)'),
     mlines.Line2D([], [], color=W32_COLOR, marker='o', markersize=8,
-                  linestyle='--', label='Realop QTT  w=32'),
+                  linestyle='--', label='ST-NO QTT  w=32'),
     mlines.Line2D([], [], color=W64_COLOR, marker='^', markersize=8,
-                  linestyle='--', label='Realop QTT  w=64'),
+                  linestyle='--', label='ST-NO QTT  w=64'),
     mlines.Line2D([], [], color=FNO_COLOR, linestyle=':', linewidth=2,
                   label='FNO baseline (StFT paper)'),
 ]
@@ -249,16 +249,16 @@ print(f"Saved {out}")
 # ─────────────────────────────────────────────────────────────────────────────
 curve_configs = [
     # Realop curves (400 epochs)
-    ('realop_qtt_r8_w32_400ep',   'Realop r=8  w=32 (29K)',   W32_COLOR,  ':',  1.5),
-    ('realop_qtt_r16_w32_400ep',  'Realop r=16 w=32 (91K)',   W32_COLOR,  '--', 1.5),
-    ('realop_qtt_r24_w32_400ep',  'Realop r=24 w=32 (194K)',  W32_COLOR,  '-',  1.5),
-    ('realop_qtt_r32_w32_400ep',  'Realop r=32 w=32 (337K)',  W32_COLOR,  '-',  2.5),
-    ('realop_qtt_r16_w64',        'Realop r=16 w=64 (112K)',  W64_COLOR,  '--', 1.5),
-    ('realop_qtt_r24_w64_400ep',  'Realop r=24 w=64 (220K)',  W64_COLOR,  '-',  1.5),
-    ('realop_qtt_r32_w64_400ep',  'Realop r=32 w=64 (370K)',  W64_COLOR,  '-',  2.5),
+    ('realop_qtt_r8_w32_400ep',   'ST-NO r=8  w=32 (29K)',   W32_COLOR,  ':',  1.5),
+    ('realop_qtt_r16_w32_400ep',  'ST-NO r=16 w=32 (91K)',   W32_COLOR,  '--', 1.5),
+    ('realop_qtt_r24_w32_400ep',  'ST-NO r=24 w=32 (194K)',  W32_COLOR,  '-',  1.5),
+    ('realop_qtt_r32_w32_400ep',  'ST-NO r=32 w=32 (337K)',  W32_COLOR,  '-',  2.5),
+    ('realop_qtt_r16_w64',        'ST-NO r=16 w=64 (112K)',  W64_COLOR,  '--', 1.5),
+    ('realop_qtt_r24_w64_400ep',  'ST-NO r=24 w=64 (220K)',  W64_COLOR,  '-',  1.5),
+    ('realop_qtt_r32_w64_400ep',  'ST-NO r=32 w=64 (370K)',  W64_COLOR,  '-',  2.5),
     # Spectral curves (200 epochs — converge fast then plateau)
     ('baseline_spectral_dense_w32_m16', 'Spectral w=32 (2.1M)', SPEC_COLOR, '--', 2.0),
-    ('spectral_w64_m16',                'Spectral w=64 (8.4M)', SPEC_COLOR, '-',  2.5),
+    ('spectral_w64_m16',                'STFNO w=64 (8.4M)', SPEC_COLOR, '-',  2.5),
 ]
 
 fig, ax = plt.subplots(figsize=(9, 5))
@@ -302,12 +302,12 @@ rows = [
     ['Config',                'Params',   'One-step L²', 'vs FNO\n(1-step)', 'Rollout(20)', 'Rollout(67)', 'vs FNO\n(67-step)'],
     ['Spectral  w=64',        '8.4M',     '2.00e−3',     '47×',              '4.18e−3',    '1.85e−2',    '5.1×'],
     ['Spectral  w=32',        '2.1M',     '3.28e−3',     '29×',              '—',          '4.49e−2',    '2.1×'],
-    ['Realop r=32  w=64',     '370K',     '2.47e−2',     '3.9×',             '2.83e−1',    '1.04e+0',    '0.09×'],
-    ['Realop r=24  w=64',     '220K',     '3.22e−2',     '3.0×',             '3.33e−1',    '9.50e−1',    '0.10×'],
-    ['Realop r=16  w=64',     '112K',     '4.12e−2',     '2.3×',             '3.66e−1',    '9.58e−1',    '0.10×'],
-    ['Realop r=32  w=32',     '337K',     '3.17e−2',     '3.0×',             '3.30e−1',    '1.16e+0',    '0.08×'],
-    ['Realop r=24  w=32',     '194K',     '3.77e−2',     '2.5×',             '3.51e−1',    '1.23e+0',    '0.08×'],
-    ['Realop r=16  w=32',     '91K',      '5.23e−2',     '1.8×',             '4.62e−1',    '1.17e+0',    '0.08×'],
+    ['ST-NO r=32  w=64',     '370K',     '2.47e−2',     '3.9×',             '2.83e−1',    '1.04e+0',    '0.09×'],
+    ['ST-NO r=24  w=64',     '220K',     '3.22e−2',     '3.0×',             '3.33e−1',    '9.50e−1',    '0.10×'],
+    ['ST-NO r=16  w=64',     '112K',     '4.12e−2',     '2.3×',             '3.66e−1',    '9.58e−1',    '0.10×'],
+    ['ST-NO r=32  w=32',     '337K',     '3.17e−2',     '3.0×',             '3.30e−1',    '1.16e+0',    '0.08×'],
+    ['ST-NO r=24  w=32',     '194K',     '3.77e−2',     '2.5×',             '3.51e−1',    '1.23e+0',    '0.08×'],
+    ['ST-NO r=16  w=32',     '91K',      '5.23e−2',     '1.8×',             '4.62e−1',    '1.17e+0',    '0.08×'],
     ['Realop r=8   w=32',     '29K',      '7.05e−2',     '1.4×',             '5.37e−1',    '9.97e−1',    '0.10×'],
     ['FNO (StFT paper)',       '~2M',      '9.53e−2',     'baseline',         '—',          '9.53e−2',    'baseline'],
 ]
@@ -319,7 +319,7 @@ for i, row in enumerate(rows):
         row_colors.append(['#2c3e50'] * len(row))
     elif 'Spectral  w=64' in row[0]:
         row_colors.append(['#d4e6f1'] * len(row))
-    elif 'Realop r=32  w=64' in row[0]:
+    elif 'ST-NO r=32  w=64' in row[0]:
         row_colors.append(['#fde8d8'] * len(row))
     elif 'FNO' in row[0]:
         row_colors.append(['#e8e8e8'] * len(row))
