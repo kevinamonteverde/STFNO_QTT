@@ -5,13 +5,24 @@ from tltorch.factorized_tensors.core import FactorizedTensor
 
 from .qtt import QTTWeight
 from .fourier_transform_3d_layer_factorized import (
-    _contract_dense,
     _contract_tt_factorized,
     _contract_qtt_factorized,
     get_contract_fun,
     get_time,
     record_time,
 )
+
+
+def _contract_dense_2d(x, weight):
+    """Dense einsum contraction for 2D spectral modes.
+
+    x: (batch, in_channels, modes1, modes2)
+    weight: (in_channels, out_channels, modes1, modes2)
+    """
+    if not torch.is_tensor(weight):
+        weight = weight.to_tensor()
+    x_s = x.shape[2:]
+    return torch.einsum("bixy,ioxy->boxy", x, weight[:, :, :x_s[0], :x_s[1]])
 
 
 class FactorizedSpectralConv2d(nn.Module):
@@ -99,11 +110,10 @@ class FactorizedSpectralConv2d(nn.Module):
         """Apply contraction weight w to Fourier-domain slice x."""
         if isinstance(w, QTTWeight):
             if self.implementation == 'reconstructed':
-                return _contract_dense(x, w.to_tensor())
+                return _contract_dense_2d(x, w.to_tensor())
             return _contract_qtt_factorized(x, w)
-        if self._contract is _contract_dense and not torch.is_tensor(w):
-            return _contract_dense(x, w.to_tensor())
-        return self._contract(x, w)
+        w_tensor = w.to_tensor() if not torch.is_tensor(w) else w
+        return _contract_dense_2d(x, w_tensor)
 
     def forward(self, x):
         # x: (batch, C_in, H, W)
